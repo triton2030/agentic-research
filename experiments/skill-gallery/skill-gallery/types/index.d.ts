@@ -5,7 +5,7 @@ declare module 'claude-code' {
     'skill-gallery': {
       skills: Shaped<SkillEntry[]>
       favorites: Shaped<string[]>
-      collapsed: Shaped<string[]>
+      expanded: Shaped<string[]>
       isOpen: boolean
     }
   }

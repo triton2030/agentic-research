@@ -22,8 +22,11 @@ const COMMANDS = [
   { name: 'skill-gallery', description: 'self', source: 'plugin' },
 ]
 
+// Every section open, for tests that look at the rows.
+const ALL_OPEN = ['Избранное', 'Мои', 'Команды', 'pk', 'Плагины']
+
 test('a skill button puts /name into the prompt box', async ($, on) => {
-  mock.store(on)
+  mock.store(on, { expanded: ALL_OPEN })
   const fills: { text: string; mode?: string }[] = []
   on('command.register', () => ({ value: { command: 'skill-gallery' } }))
   on('command.list', () => ({ value: COMMANDS }))
@@ -53,6 +56,7 @@ test('a skill button puts /name into the prompt box', async ($, on) => {
 
 test('a star adds and removes a favorite, kept in the store', async ($, on) => {
   const held = new Map<string, unknown>()
+  held.set('expanded', ALL_OPEN)
   on('store.get', (_, e) => ({ value: held.get(e.key) }))
   on('store.set', (_, e) => {
     held.set(e.key, e.value)
@@ -79,7 +83,7 @@ test('a star adds and removes a favorite, kept in the store', async ($, on) => {
 })
 
 test('favorites from an earlier session come back', async ($, on) => {
-  mock.store(on, { favorites: ['alpha'] })
+  mock.store(on, { favorites: ['alpha'], expanded: ALL_OPEN })
   on('command.register', () => ({ value: { command: 'skill-gallery' } }))
   on('command.list', () => ({ value: COMMANDS }))
   on('ui.open', () => ({ value: { isPlaced: true } }))
@@ -157,7 +161,7 @@ test('a closed pane leaves a reopen button in the row', async ($, on) => {
   await ui.unmount()
 })
 
-test('skills sit in sections that fold and remember it', async ($, on) => {
+test('sections start folded, open on a click on the title, and remember it', async ($, on) => {
   const held = new Map<string, unknown>()
   on('store.get', (_, e) => ({ value: held.get(e.key) }))
   on('store.set', (_, e) => {
@@ -173,25 +177,26 @@ test('skills sit in sections that fold and remember it', async ($, on) => {
 
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...PANE, surface })
-    expect((await ui.find({ key: 'sec:Мои' }))?.text).toBe('▾')
-    for (const title of ['Мои', 'Команды', 'pk', 'Плагины']) {
-      expect((await ui.find({ type: 'Text', text: title }))?.text).toBe(title)
-    }
-    // A plugin's skill is listed by its short name, inserted by its full one.
-    expect((await ui.find({ key: 'skill:pk:beta' }))?.text).toBe('beta')
+    expect((await ui.find({ key: 'sec:Мои' }))?.text).toBe('▸ Мои 1')
+    expect((await ui.find({ key: 'sec:Команды' }))?.text).toBe('▸ Команды 1')
+    expect((await ui.find({ key: 'sec:pk' }))?.text).toBe('▸ pk 1')
+    expect((await ui.find({ key: 'sec:Плагины' }))?.text).toBe('▸ Плагины 1')
+    expect(await ui.find({ key: 'skill:pk:beta' })).toBeUndefined()
     await ui.unmount()
   }
 
   const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
   await ui.press({ key: 'sec:pk' })
-  expect((await ui.find({ key: 'sec:pk' }))?.text).toBe('▸')
-  expect(await ui.find({ key: 'skill:pk:beta' })).toBeUndefined()
-  expect(held.get('collapsed')).toEqual(['pk'])
+  expect((await ui.find({ key: 'sec:pk' }))?.text).toBe('▾ pk 1')
+  // A plugin's skill is listed by its short name, inserted by its full one.
+  expect((await ui.find({ key: 'skill:pk:beta' }))?.text).toBe('beta')
+  expect(held.get('expanded')).toEqual(['pk'])
   await ui.unmount()
 })
 
 test('a star keeps what another session added meanwhile', async ($, on) => {
   const held = new Map<string, unknown>()
+  held.set('expanded', ALL_OPEN)
   on('store.get', (_, e) => ({ value: held.get(e.key) }))
   on('store.set', (_, e) => {
     held.set(e.key, e.value)

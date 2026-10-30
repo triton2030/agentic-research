@@ -8,7 +8,8 @@ const COMMAND = 'skill-gallery'
 const TITLE = 'Skills'
 // These outlive the session in $.store under these keys.
 const FAVORITES_KEY = 'favorites'
-const COLLAPSED_KEY = 'collapsed'
+// Sections are folded unless listed here.
+const EXPANDED_KEY = 'expanded'
 
 const FAVORITES = 'Избранное'
 const MINE = 'Мои'
@@ -22,8 +23,8 @@ const skills = atom({ plugin: 'skill-gallery', key: 'skills' } as const, [], {
 const favorites = atom({ plugin: 'skill-gallery', key: 'favorites' } as const, [], {
   shape: 'favorites-1',
 })
-const collapsed = atom({ plugin: 'skill-gallery', key: 'collapsed' } as const, [], {
-  shape: 'collapsed-1',
+const expanded = atom({ plugin: 'skill-gallery', key: 'expanded' } as const, [], {
+  shape: 'expanded-1',
 })
 const isOpen = atom({ plugin: 'skill-gallery', key: 'isOpen' } as const, false)
 
@@ -48,9 +49,9 @@ async function loadList($: EngineInterface, key: string) {
 
 async function loadSaved($: EngineInterface) {
   const favs = await loadList($, FAVORITES_KEY)
-  const folded = await loadList($, COLLAPSED_KEY)
+  const opened = await loadList($, EXPANDED_KEY)
   await update($, favorites, () => favs)
-  await update($, collapsed, () => folded)
+  await update($, expanded, () => opened)
 }
 
 function toggled(list: string[], item: string) {
@@ -66,9 +67,9 @@ async function toggleFavorite($: EngineInterface, name: string) {
 }
 
 async function toggleSection($: EngineInterface, title: string) {
-  const next = toggled(await loadList($, COLLAPSED_KEY), title)
-  await $.store.set(COLLAPSED_KEY, next)
-  await update($, collapsed, () => next)
+  const next = toggled(await loadList($, EXPANDED_KEY), title)
+  await $.store.set(EXPANDED_KEY, next)
+  await update($, expanded, () => next)
 }
 
 async function refreshAll($: EngineInterface) {
@@ -190,7 +191,10 @@ export const register: Register = on => {
     const { Box, Text, Button } = $.ui.resolve(e)
     const list = await read($, skills)
     const favs = await read($, favorites)
-    const folded = await read($, collapsed)
+    const opened = await read($, expanded)
+    // Section titles in a dark gray on the desktop; the terminal's dim elsewhere.
+    const titleColor =
+      e.surface === 'desktop' ? 'rgba(255, 255, 255, 0.42)' : undefined
     const sections = sectionsOf(list, favs)
 
     const row = (name: string, label: string, isFav: boolean) => (
@@ -223,7 +227,7 @@ export const register: Register = on => {
           </Button>
         </Box>
         {sections.map(section => {
-          const isFolded = folded.includes(section.title)
+          const isFolded = !opened.includes(section.title)
 
           return (
             <Box
@@ -231,25 +235,21 @@ export const register: Register = on => {
               flexDirection="column"
               gap="xs"
             >
-              {/* The title sits outside the button: the desktop sizes text
-                  only there. The arrow folds the section. */}
-              <Box
-                key={`head:${section.title}`}
-                flexDirection="row"
-                alignItems="center"
-                gap="sm"
+              {/* The whole title row is one button that folds the section. */}
+              <Button
+                key={`sec:${section.title}`}
+                plain
+                onPress={() => toggleSection($, section.title)}
               >
-                <Button
-                  key={`sec:${section.title}`}
-                  plain
-                  label={isFolded ? '▸' : '▾'}
-                  onPress={() => toggleSection($, section.title)}
-                />
-                <Text size="title" weight="bold">
+                <Text bold color={titleColor} dimColor={!titleColor}>
+                  {isFolded ? '▸ ' : '▾ '}
                   {section.title}
                 </Text>
-                <Text dimColor>{section.names.length}</Text>
-              </Box>
+                <Text color={titleColor} dimColor={!titleColor}>
+                  {' '}
+                  {section.names.length}
+                </Text>
+              </Button>
               {!isFolded &&
                 section.names.map(name =>
                   row(
