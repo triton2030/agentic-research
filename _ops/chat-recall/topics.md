@@ -49,6 +49,7 @@
 - `mattpocock-system` — Переход на систему скилов Matt Pocock: его поток работы, архивация своих конфликтующих скилов, перевод документации
 - `mental-model-checks` — Проверка допущений и ремонт ментальной модели по неожиданностям
 - `notion-integration` — Интеграция агента с Notion Developer Platform
+- `openai-images` — Генерация и правка изображений моделями OpenAI GPT Image через API-ключ владельца и скил 1codex-image
 - `openviking-wiki` — Эксперимент OpenViking по сборке owner-attributed библиотеки знаний
 - `orchestration-waves` — Оркестрация многозадачных волн и durable manifest
 - `owner-intent` — Понимание скрытого намерения владельца за буквальной просьбой

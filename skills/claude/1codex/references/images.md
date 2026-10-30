@@ -32,7 +32,7 @@ API-ключа, но расходует лимит в среднем в 3–5 р
   перекраска темой и масштаб. Иллюстрация, элемент дизайна с объёмом, светом
   или фактурой и макет экрана — растр.
 - Фон логотипа или ассета с точными цветами на ровном фоне убирай локально:
-  `python3 ~/.codex/skills/.system/imagegen/scripts/remove_chroma_key.py
+  `uv run -q --with pillow python -I ~/.codex/skills/.system/imagegen/scripts/remove_chroma_key.py
   --input IN.png --out OUT.png --auto-key border` — оставшиеся пиксели
   сохраняют цвет. Цвет фона не должен встречаться в объекте: белые блики на
   белом фоне станут дырами; с `--soft-matte` светлое тело становится

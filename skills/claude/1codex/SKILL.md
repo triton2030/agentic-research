@@ -1,9 +1,8 @@
 ---
 name: 1codex
 description: >-
-  Use when work nears done, a route is unchosen, work, writing or images
-  (mockups, transparent assets) need other hands, a Codex run is live, or Codex
-  and Claude disagree. Own subagents: 1orchestration.
+  Use when work nears done, a route is unchosen, work or writing need other
+  hands, a Codex run is live, or Codex and Claude disagree. Own subagents: 1orchestration.
 ---
 
 # 1codex — чужие глаза, чужая голова, чужие руки
@@ -20,7 +19,7 @@ description: >-
 Codex вызывается как твой собственный субагент: один вызов, полный доступ,
 запись прямо в проект, несколько прогонов параллельно. Песочницы нет: границы
 держат слова задания, а что натворил исполнитель, ты видишь сам в диффе.
-Ещё в Codex встроен генератор растровых картинок, которого у Клода нет.
+Ещё в Codex встроен генератор растровых картинок.
 
 По умолчанию Codex идёт тредом T3 Code: запуск и ведение треда описывает скил
 `1t3`. Владелец выбрал этот путь, потому что в приложении T3 Code видит все
@@ -156,8 +155,8 @@ Codex вызывается как твой собственный субаген
 
 ### Картинка
 
-Иллюстрация, элемент дизайна с прозрачным фоном, макет интерфейса до кода,
-правка изображения — [images.md](references/images.md).
+Картинки делает `1codex-image`. Сюда — когда владелец просит Codex или
+согласился на него, потому что API OpenAI недоступен: [images.md](references/images.md).
 
 ## Пока прогон идёт
 

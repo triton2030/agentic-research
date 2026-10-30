@@ -29,3 +29,6 @@ experiments/flowpage-v4-elk/dist/
 
 # Personal source material removed from the public repository
 /experiments/openviking-chat-recall/artifacts/transfer-kumysbekov/
+
+# Local secrets
+/_ops/env/
