@@ -56,14 +56,23 @@ function toggled(list: string[], item: string) {
   return list.includes(item) ? list.filter(x => x !== item) : [...list, item]
 }
 
+// Toggle against the store, not this session's copy: other open sessions
+// may have changed it since this one started.
 async function toggleFavorite($: EngineInterface, name: string) {
-  const next = await update($, favorites, list => toggled(list, name))
+  const next = toggled(await loadList($, FAVORITES_KEY), name)
   await $.store.set(FAVORITES_KEY, next)
+  await update($, favorites, () => next)
 }
 
 async function toggleSection($: EngineInterface, title: string) {
-  const next = await update($, collapsed, list => toggled(list, title))
+  const next = toggled(await loadList($, COLLAPSED_KEY), title)
   await $.store.set(COLLAPSED_KEY, next)
+  await update($, collapsed, () => next)
+}
+
+async function refreshAll($: EngineInterface) {
+  await loadSaved($)
+  await refresh($)
 }
 
 // An open pane may wait undrawn (no window attached yet, as right after a
@@ -131,7 +140,7 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: COMMAND }, async $ => {
-    await refresh($)
+    await refreshAll($)
     await openPane($)
 
     return { text: 'Skill gallery opened.' }
@@ -206,7 +215,7 @@ export const register: Register = on => {
       <Box flexDirection="column" gap="lg">
         <Box flexDirection="row" gap={1}>
           <Text dimColor>{list.length} skills</Text>
-          <Button key="refresh" plain dimColor onPress={() => refresh($)}>
+          <Button key="refresh" plain dimColor onPress={() => refreshAll($)}>
             refresh
           </Button>
         </Box>

@@ -188,3 +188,26 @@ test('skills sit in sections that fold and remember it', async ($, on) => {
   expect(held.get('collapsed')).toEqual(['pk'])
   await ui.unmount()
 })
+
+test('a star keeps what another session added meanwhile', async ($, on) => {
+  const held = new Map<string, unknown>()
+  on('store.get', (_, e) => ({ value: held.get(e.key) }))
+  on('store.set', (_, e) => {
+    held.set(e.key, e.value)
+    return { value: undefined }
+  })
+  on('command.register', () => ({ value: { command: 'skill-gallery' } }))
+  on('command.list', () => ({ value: COMMANDS }))
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
+
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  // Another session stars a skill after this one started.
+  held.set('favorites', ['alpha'])
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  await ui.press({ key: 'fav:zeta' })
+  expect(held.get('favorites')).toEqual(['alpha', 'zeta'])
+  expect((await ui.find({ key: 'fav:alpha' }))?.text).toBe('★')
+  await ui.unmount()
+})
