@@ -12,8 +12,8 @@
 | `_ops/GOAL.md` | контракт проекта: scope / done / stop | `1goal` |
 | `_ops/product-frames/` | project-wide пара frame + principles | `1product-shaping` |
 | `_ops/chat-recall/` | слова владельца: дословные выдержки, файл на разговор | `_ops/chat-recall/AGENTS.md` |
-| `_ops/findings/` | inbox побочных проблем до маршрутизации | `1findings` |
-| `_ops/plans/` | task-файлы активной многосессионной работы | `1planning` |
+| `_ops/findings/` | прежний inbox побочных проблем; скил `1findings` снят 2026-10-30 | ждёт перевода на систему Мэта |
+| `_ops/plans/` | прежние эпики и задачи; скил `1planning` снят 2026-10-30 | ждёт перевода на систему Мэта |
 | `_ops/handoffs/` | continuation packets закрытых сессий | `1handoff` |
 | `_ops/interviews/`, `_ops/rules/`, `_ops/user-said/`, `_ops/self-learning/` | временные и замороженные поверхности | `_ops/AGENTS.md` |
 | `knowledge/` | вещи базы знаний: модель, рантайм, агент, скил, инструкция, понятия | папочные README |
@@ -68,14 +68,6 @@
 
 - **Правка скила — глобальный артефакт** (cross-project, veto-class): пиши
   project-independent, без путей и допущений текущего проекта.
-  **Названное исключение — скил планирования `1planning`** (с 2026-09-25
-  поглотил `1plan-map` и `1plan-task`): решением владельца 2026-08-31 точная
-  схема планирования — ныне адреса `_ops/plans`, колокация задач внутри
-  эпика, ключи frontmatter, словарь статусов и Obsidian Bases — объявлена
-  общим стандартом для всех проектов
-  (`_ops/chat-recall/2026-08-31-202257-claude-86d85f7e.md#L25`); 2026-09-25
-  владелец подтвердил, что Bases, их место и отображение остаются. Не
-  откатывай эти адреса как нарушение правила выше.
 - **Владелец пакета — сначала tracked owner.** Есть папка в `skills/shared/**`
   или `skills/{claude,codex}/**` — правь её, а `~/.claude/skills/` и
   `~/.codex/skills/` считай projection. Нет tracked owner — live installed
