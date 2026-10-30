@@ -117,13 +117,12 @@ the model is needed at all, which models can do it, and the brief's wording.
 
 ## Reference files
 
-- Every call: [run.md](references/run.md) — command, model, quality, size,
-  cost, what to do when a call fails.
+- Every call: [run.md](references/run.md) — command, defaults (2K, `high`),
+  sizes, cost, what to do when a call fails.
 - Before the brief of your case: the example in
   [prompts.md](references/prompts.md) — complex UI, next screen, illustration
   and photo, poster and slide, edits, references, product, logo, character
   series, icon set, restoration.
-- Size or quality the script rejects, `xhigh`, `max`: [api.md](references/api.md).
 
 ## When the image arrives
 

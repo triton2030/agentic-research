@@ -80,7 +80,7 @@ For a photo, add `photorealistic` and visible texture: skin, fabric, wear.
 
 Each line of text is a list item in quotes; the main one gets a hierarchy
 word. Name the language of the text. Slides and charts get the real numbers;
-small text needs `high`. An exact chart from data belongs in code: the model
+dense small text needs `xhigh`. An exact chart from data belongs in code: the model
 invents points.
 
 Probed: every Russian label correct, including «ё» and «» quotes.
