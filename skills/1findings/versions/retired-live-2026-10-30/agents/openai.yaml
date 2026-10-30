@@ -1,0 +1,7 @@
+interface:
+  display_name: "1findings"
+  short_description: "Record a side problem worth the owner's decision, then resume the interrupted work"
+  default_prompt: "Используй $1findings, чтобы записать побочную проблему, которая стоит решения владельца, и сразу вернуться к основной работе."
+
+policy:
+  allow_implicit_invocation: true

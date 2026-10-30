@@ -4,9 +4,12 @@ description: "Origin, versions and refactor evidence of 1findings."
 
 # `1findings` — история скила
 
-Живые владельцы: `/Users/triton/.codex/skills/1findings/` и
-`/Users/triton/.claude/skills/1findings/`. Tracked owner у пакета отсутствует;
-второй source tree не создавался.
+**Снят 2026-10-30** при переходе владельца на систему скилов Matt Pocock:
+«скилл находок, если честно, плохо работал вообще всегда».[^removal]
+Действующих пакетов и установленных копий нет. Последняя установленная
+версия — [`versions/retired-live-2026-10-30/`](versions/retired-live-2026-10-30/)
+(копия Codex; у Claude та же без `agents/`).
+Всё ниже — история до снятия, работу она не направляет.
 
 - `versions/live-codex-2026-08-31/` — исходный установленный пакет;
 - `versions/candidate-2026-08-31/` — утверждённая и установленная goal-only
@@ -23,3 +26,5 @@ description: "Origin, versions and refactor evidence of 1findings."
 Текущая стадия: `установлено 2026-09-27` — строгий допуск записи поверх
 goal-only версии 2026-08-31; вопросы владельцу — в
 `work/strict-admission-2026-09-27/state.md`.
+
+[^removal]: [Слова владельца, 2026-10-30](../../_ops/chat-recall/2026-10-30-143023-claude-20b43aed.md#recall-a4f0045b2c6f4cd783ba8618dd356655).

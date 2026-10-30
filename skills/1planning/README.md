@@ -4,8 +4,18 @@ description: "Version packages and refactor evidence for 1planning."
 
 # История 1planning
 
-Живой owner находится в `skills/shared/1planning/portable/`.
-Эта папка хранит историю и не является runtime package.
+**Снят 2026-10-30** при переходе владельца на систему скилов Matt Pocock:
+«заранее все запланировать и отпустить агента, чтобы он все выполнял, ну, я
+уже пробовал так, так не работает».[^removal] Работу теперь ведут `/to-spec`,
+`/to-tickets` и `/wayfinder` плагина `mattpocock-skills`. Действующих пакетов
+и установленных копий нет.
+
+- [`versions/retired-shared-2026-10-30/`](versions/retired-shared-2026-10-30/) —
+  последний shared owner;
+- `versions/retired-claude-2026-10-30/` и `versions/retired-codex-2026-10-30/` —
+  установленные копии: они новее owner-а и содержат `references/хранение-json.md`.
+
+Всё ниже — история до снятия, работу она не направляет.
 
 ## Рефактор 2026-09-25 — роутеры
 
@@ -50,3 +60,5 @@ Codex и Claude. [Результат и проверка](../1planning/work/impl
 Исходный пакет: [baseline-2026-09-03](versions/baseline-2026-09-03/SKILL.md).
 Продолжение: [состояние](work/refactor-2026-09-03/state.md).
 Общее намерение и карта потерь: [рабочая папка тройки](../1planning/work/refactor-2026-09-03/intent.md).
+
+[^removal]: [Слова владельца, 2026-10-30](../../_ops/chat-recall/2026-10-30-143023-claude-20b43aed.md#recall-a4f0045b2c6f4cd783ba8618dd356655).

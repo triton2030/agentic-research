@@ -1,0 +1,4 @@
+interface:
+  display_name: "1code-router"
+  short_description: "Strategic view before writing or fixing code"
+  default_prompt: "Используй $1code-router перед тем, как писать или исправлять код."

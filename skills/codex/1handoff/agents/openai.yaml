@@ -1,0 +1,7 @@
+interface:
+  display_name: "1handoff"
+  short_description: "Безопасное закрытие рабочей сессии"
+  default_prompt: "Используй $1handoff, чтобы одним действием закрыть текущую сессию: сохранить durable owner evidence через $1chat-recall и создать continuation packet с точным следующим шагом."
+
+policy:
+  allow_implicit_invocation: false

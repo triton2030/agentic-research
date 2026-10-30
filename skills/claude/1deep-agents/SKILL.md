@@ -1,9 +1,11 @@
 ---
 name: 1deep-agents
 description: >-
-  Use for deep-agent or multi-framework requests, or when owners, principles,
-  and prior words leave a decision unresolved but must continue. Not for
-  implementation, one expert, or trajectory review.
+  Use only when explicitly invoked for three isolated framework traces and a
+  decision-ready synthesis on one important question, for example before
+  answering a hard grilling question. Not for implementation, one expert, or
+  trajectory review.
+disable-model-invocation: true
 ---
 
 # Глубокие Агенты

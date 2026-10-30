@@ -21,7 +21,8 @@
 on-ramp «что агенту читать первым».
 
 Ни один не хранит правила, задачи, статусы. Правило → владелец поверхности
-(`1instruction-authoring`); задача → `_ops/plans/**` (`1planning`).
+(`1instruction-authoring`); задача → тикет в трекере проекта
+(`docs/agents/issue-tracker.md`).
 
 ## Ментальные инструменты
 

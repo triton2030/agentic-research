@@ -87,7 +87,7 @@ your own judgment.
 A quote is context, not a decision. Take the current rule from live project
 files and the current conversation; a quote that diverges from them tells what
 the owner thought earlier and changes nothing. A quote fresher than a live file
-and diverging from it calls for a finding via `1findings` or a question to him:
+and diverging from it calls for a question to him:
 the file changes on his current word, not on a quote. For agent instructions a
 quote raises no question: they change on his current word. Without divergence,
 history explains why things are as they are.

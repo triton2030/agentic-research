@@ -45,7 +45,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   у каждого (с 2026-10-10 по образцу `writing-for-agents` Matt Pocock).
   Потребители — `1skill-creation`, `1instruction-authoring`, `1goal`,
   `1orchestration`. Codex metadata живёт в `platforms/codex/agents/openai.yaml`.
-- Семья авторинга — пять скилов по различимым моментам запуска, заменили пару
+- Семья авторинга — скилы по различимым моментам запуска, заменили пару
   `1skill-shaping` + `1instruction-shaping`, снятую 2026-08-26 (архивы в
   `skills/1skill-shaping/` и `skills/1instruction-shaping/`; решение владельца —
   `_ops/chat-recall/raw/2026-08-26-201025-claude-4e40828f.md#L15`):
@@ -62,16 +62,6 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     Maintain-цель зоны, реальные механизмы и нормативное старшинство.
     Принципы — `1instruction-authoring/product-frame.principles.md`;
     история — `skills/1instruction-authoring/`.
-  - `1context-refactor/portable/` — ретроспектива всей доступной сессии:
-    лишние вызовы инструментов, чтение, переделки, остановки и проверки;
-    затем разбор причин и сохранение полезных улучшений. Различает
-    наблюдаемую потерю и установленную причину, текст и механизм среды;
-    ремонт направляет к владельцу источника в пределах полномочий и
-    выбирает без роста постоянной нагрузки: механизм, правка строки,
-    находка, новая строка последней. Переносимый контракт — `SKILL.md`,
-    Codex-вход — `platforms/codex/agents/openai.yaml`. История —
-    `skills/1context-refactor/work/retrospective-2026-09-24/` и
-    `skills/1context-refactor/work/repair-load-2026-09-26/`.
   - `1skill-creation/portable/` — создание, адресная правка и переработка
     скилов в общей мастерской. Контекст, Задача, необходимые Критерии и Цель
     несут разные смыслы; число разделов и пунктов не задаётся квотой.
@@ -95,9 +85,10 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   contract; runtime launch deltas для Codex `spawn_agent` и Claude `Agent`
   живут в одной адресуемой reference, а Codex UI metadata — в
   `platforms/codex/agents/openai.yaml`.
-- `1readable-code/portable/` — обязательный стратегический взгляд перед кодом
-  для Claude и Codex с маршрутами к книжным скилам; `platforms/codex/agents/openai.yaml` содержит только Codex UI
-  metadata.
+- `1code-router/portable/` — обязательный стратегический взгляд перед кодом
+  для Claude и Codex с маршрутами к скилам Matt Pocock и книжным; до 2026-10-30
+  назывался `1readable-code`. `platforms/codex/agents/openai.yaml` содержит
+  только Codex UI metadata; история — `skills/1code-router/`.
 - `1orchestration` с 2026-09-06 имеет два runtime owners:
   `skills/codex/1orchestration/` — выбор фоновых Luna Max, Opus и собственных
   субагентов ради скорости, стоимости и качества; поглотил `1codex-bg-threads`.
@@ -123,19 +114,6 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1product-shaping/portable/` создаёт чистые Product Principles + Frame и
   журнал обоснований; `1use-principles/portable/` применяет их к развилкам и
   пустотам.
-- `1planning/portable/` — единственный скил планирования с 2026-09-25:
-  порядок работ с владельцем, эпики, роутеры задач, вопросы и оба Bases.
-  Поглотил `1plan-map` и `1plan-task`, раскроенные из него 2026-08-26;
-  обратное слияние одобрено владельцем 2026-09-25
-  (`mavo3/_ops/chat-recall/2026-09-25-130106-Claude-f6bca69a.md`). Задача —
-  роутер: цель, ссылки на места документации с пометкой «зачем», что не
-  входит, чеклист проверок; отчётов, доказательств и состояния в файле нет.
-  Дословный протокол владельца о декомпозиции в чате сохранён в теле.
-  `references/форма-планов.md` — адреса, поля шапки для Bases, разделы и
-  проверка; `scripts/check_plans.py` принимает роутер и прежнюю форму до
-  закрытия файла; `assets/` — шаблоны и оба Bases без изменений. История —
-  `skills/1planning/` (работа — `work/router-2026-09-25/`), снятые пакеты —
-  `skills/1plan-map/`, `skills/1plan-task/`.
 - `1smart-simple` — tracked owner отсутствует; живые пакеты
   `~/.claude/skills/1smart-simple/` и `~/.codex/skills/1smart-simple/` —
   единственная правда (v4, 2026-09-06; история — `skills/1smart-simple/`).
@@ -170,10 +148,6 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   и шагов, имя как обещание, проверяемое по тексту файлов, вложенность по
   общему изменению; одобрено владельцем (`mavo3/_ops/chat-recall/2026-09-27-162252-Claude-7447c57c.md#recall-05230b0e33454b6f92d2f4bf4e6b9e52`);
   история — `skills/1folder-tree/work/kinds-and-names-2026-09-27/`.
-- `1interview-tool/portable/` исследует будущие ошибки исполнения документов
-  и создаёт Markdown-интервью с полноценными вариантами. Разобранные формы
-  сохраняются как архив контекста в `_ops/interviews/_archive/`, не канон.
-  Codex invocation metadata — `platforms/codex/agents/openai.yaml`.
 - `1document-system/portable/` — запись долгоживущего в документы проекта: где
   живёт ответ, каким деловым типом он назван и что вообще считается
   установленным. Пакет — тело плюс четыре стадии по состоянию дома
@@ -189,9 +163,6 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   contract; runtime launch deltas для Codex `spawn_agent` и Claude `Agent`
   живут в одной адресуемой reference, а Codex UI metadata — в
   `platforms/codex/agents/openai.yaml`.
-- `1readable-code/portable/` — обязательный стратегический взгляд перед кодом
-  для Claude и Codex с маршрутами к книжным скилам; `platforms/codex/agents/openai.yaml` содержит только Codex UI
-  metadata.
 - `1orchestration` с 2026-09-06 имеет два runtime owners:
   `skills/codex/1orchestration/` — выбор фоновых Luna Max, Opus и собственных
   субагентов ради скорости, стоимости и качества; поглотил `1codex-bg-threads`.
@@ -205,10 +176,6 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1product-shaping/portable/` создаёт чистые Product Principles + Frame и
   журнал обоснований; `1use-principles/portable/` применяет их к развилкам и
   пустотам.
-- `1interview-tool/portable/` исследует будущие ошибки исполнения документов
-  и создаёт Markdown-интервью с полноценными вариантами. Разобранные формы
-  сохраняются как архив контекста в `_ops/interviews/_archive/`, не канон.
-  Codex invocation metadata — `platforms/codex/agents/openai.yaml`.
 - `1document-system/portable/` — письмо и существенная правка одного документа
   проекта: стандартное деловое имя типа как адрес, жанровая дисциплина и
   вытеснение замещённого вместо дописывания рядом (v2, 2026-09-01; v1 из 24
@@ -248,6 +215,19 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 `~/.codex/skills/<name>/` и `~/.claude/skills/<name>/` — installed projections
 следующего уровня. Их не редактируют напрямую.
 
+## Сняты 2026-10-30 — переход на систему Matt Pocock
+
+Владелец перешёл на плагин `mattpocock-skills`; пересекавшиеся скилы сняты
+целиком, установленных копий нет.[^matt]
+
+- `1planning` → `/to-spec`, `/to-tickets`, `/wayfinder`; история — `skills/1planning/`.
+- `1interview-tool` → `/grill-with-docs`, `/grill-me`, `/to-questionnaire`;
+  история — `skills/1interview-tool/`.
+- `1context-refactor` → `/retro`; история — `skills/1context-refactor/`.
+- `1findings` (tracked owner не было) — история `skills/1findings/`.
+
+[^matt]: [Слова владельца, 2026-10-30](../../_ops/chat-recall/2026-10-30-143023-claude-20b43aed.md#recall-a4f0045b2c6f4cd783ba8618dd356655).
+
 ## Product Owners
 
 `1chat-recall/` и `1handoff/` владеют только общей продуктовой
@@ -275,9 +255,9 @@ runtime-теста целиком уже стирало Codex-специфичн
 
 ```bash
 python3 skills/shared/sync_simple_projections.py \
-  1product-shaping 1use-principles 1planning --write --install
+  1product-shaping 1use-principles --write --install
 python3 skills/shared/sync_simple_projections.py \
-  1product-shaping 1use-principles 1planning --check
+  1product-shaping 1use-principles --check
 ```
 
 Generic script собирает все portable files и непересекающуюся runtime delta.

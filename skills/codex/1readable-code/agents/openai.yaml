@@ -1,4 +1,0 @@
-interface:
-  display_name: "1readable-code"
-  short_description: "Strategic view before writing or fixing code"
-  default_prompt: "Используй $1readable-code перед тем, как писать или исправлять код."

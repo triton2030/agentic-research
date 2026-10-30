@@ -4,10 +4,12 @@ description: "Origin, rejected rules and verification evidence for 1interview-to
 
 # 1interview-tool — происхождение, потери и проверка
 
-Живой owner: `skills/shared/1interview-tool/`. Tracked проекции —
-`skills/claude/1interview-tool/` и `skills/codex/1interview-tool/`; installed —
-`~/.claude/skills/1interview-tool/` и `~/.codex/skills/1interview-tool/`.
-Проекции напрямую не редактируются.
+**Снят 2026-10-30** при переходе владельца на систему скилов Matt Pocock.[^removal]
+Интервью теперь ведут `/grill-with-docs` и `/grill-me`, вопросы другому
+человеку — `/to-questionnaire` плагина `mattpocock-skills`. Действующих
+пакетов и установленных копий нет; последний shared owner —
+[`versions/retired-shared-2026-10-30/`](versions/retired-shared-2026-10-30/).
+Всё ниже — история до снятия, работу она не направляет.
 
 - `origin.md` — слова владельца, одобренный синтез и допуск к пересборке;
 - `cut.md` — снятые правила и таблица потерь;
@@ -35,3 +37,5 @@ python3 skills/shared/sync_simple_projections.py 1interview-tool --check
 [Образец формы](work/template-reading-2026-09-15/demo-pair/interview.md),
 [материалы образца](work/template-reading-2026-09-15/demo-pair/interview-materials.md),
 [граница проверки](work/template-reading-2026-09-15/evidence-pair.md).
+
+[^removal]: [Слова владельца, 2026-10-30](../../_ops/chat-recall/2026-10-30-143023-claude-20b43aed.md#recall-a4f0045b2c6f4cd783ba8618dd356655).

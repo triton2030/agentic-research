@@ -46,6 +46,7 @@
 - `mantine` — Разработка и обновление интерфейсов на Mantine
 - `markdown-knowledge` — Поиск, чтение и навигация по Markdown-знаниям
 - `markdown-viewer` — Программы и способы быстрого просмотра Markdown-файлов на macOS
+- `mattpocock-system` — Переход на систему скилов Matt Pocock: его поток работы, архивация своих конфликтующих скилов, перевод документации
 - `mental-model-checks` — Проверка допущений и ремонт ментальной модели по неожиданностям
 - `notion-integration` — Интеграция агента с Notion Developer Platform
 - `openviking-wiki` — Эксперимент OpenViking по сборке owner-attributed библиотеки знаний
