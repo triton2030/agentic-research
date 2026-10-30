@@ -1,0 +1,12 @@
+{
+  "name": "skill-gallery-mods",
+  "owner": { "name": "triton2030" },
+  "description": "Галерея скиллов для Claude Code",
+  "plugins": [
+    {
+      "name": "skill-gallery",
+      "source": "./skill-gallery",
+      "description": "Панель скиллов списком по разделам: клик вставляет /имя в поле ввода, звёздочка добавляет в избранное, «☆ skills» над полем открывает закрытую панель."
+    }
+  ]
+}

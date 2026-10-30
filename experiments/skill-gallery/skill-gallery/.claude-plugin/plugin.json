@@ -1,0 +1,6 @@
+{
+  "name": "skill-gallery",
+  "version": "0.3.0",
+  "description": "A pane listing skills in sections; a click puts /skill-name into the prompt box",
+  "types": "./types/index.d.ts"
+}
