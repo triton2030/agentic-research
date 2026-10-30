@@ -1,127 +1,142 @@
-# Промпты по случаям
+# Briefs by case
 
-Общие правила промпта — в теле скила. Здесь то, чем случай отличается, и
-пример. Пример с пометкой «проверен» прогнан 2026-10-30 и дал описанный
-результат; остальные собраны по правилам OpenAI и практиков — это образцы
-формы, а не гарантия.
+The order of a brief and what to keep out of it are in the skill body. Here:
+what each case adds, and an example. "Probed" means the example ran on
+2026-10-30 on `gpt-image-2.5-sunburst-2026-09-08` with the stated result; the
+others follow OpenAI's prompting guide — a pattern, not a guarantee.
 
-Другие жанры — фото, игровые ассеты, вайрфреймы, логотипы — есть в
-образцах OpenAI: `~/.codex/skills/.system/imagegen/references/sample-prompts.md`.
-Бери оттуда форму промпта; замечания о моделях и параметрах там устарели.
+## Complex UI
 
-## Иллюстрация или фото с нуля
+List the windows and panels and what each shows; the model lays them out.
+Exact text only for the product name and what the owner gave verbatim. The
+model may add marketing extras on its own — a quote banner, an upgrade card;
+for a working tool say `no promotional banners`.
 
-Стиль задают медиум, свет и палитра конкретными словами: «flat editorial
-illustration with subtle paper grain», «soft early-morning light from the
-window», цвета по именам или hex. Оценки вроде «stunning» стиля не задают.
-Для фотореализма — прямо «photorealistic» и фактура: поры, ткань, износ.
-Место под текст страницы называй долей кадра.
-
-Модель сама наполняет сцену предметами. Когда кадр должен быть пустым,
-перечисли, что в нём есть, и добавь «nothing else in the scene».
-
-Проверен: Sunburst `medium` 1536×1024 — композиция и палитра совпали, модель
-добавила растения, полку и вид за окном.
+Probed: a rich professional editor — media library, player, multi-track
+timeline, inspector, plausible labels.
 
 ```text
-Use case: illustration-story
-Asset type: hero illustration for a blog post about slow mornings, wide banner
-Primary request: a person reading a paper book at a small kitchen table by a window, a cup of tea steaming, a cat asleep on the windowsill
-Style/medium: flat editorial vector-like illustration with subtle paper grain, simple geometric shapes, no outlines
-Composition/framing: wide shot, subject on the right third, calm empty wall on the left for the post title
-Lighting/mood: soft early-morning light from the window, quiet and unhurried
-Color palette: muted sage green, warm cream, terracotta accents
-Constraints: no text, no logos, no watermark
+A desktop video editing app for a product called "Cutline" — the main editing workspace. Make it beautiful: a modern, premium professional tool with a design-award level of polish. Dark theme with one vivid accent color.
+
+The screen should include:
+- a media library with a few video clips
+- a large preview player showing a sunny beach shot
+- a multi-track timeline with several video and audio tracks
+- an inspector with color and audio settings
+- a top bar with the project name "Summer Trip" and an Export button
+
+Flat screenshot of the app window only, no device frame, no desk.
 ```
 
-## Макет интерфейса
-
-Модель рисует интерфейс точно, когда перечислено всё, что на экране: каждый
-блок, их число и каждая подпись. Сначала структура — платформа, раскладка,
-тексты, — потом стиль. Стиль задают токены дизайна: шрифт, сетка, hex-цвета,
-радиусы. Описывай экран как выпущенный продукт, без языка концепт-арта. Рамку
-устройства, стол и руки модель добавляет, если не сказать «flat full-bleed
-screenshot, no device frame».
-
-Экран существующего продукта рисуй по скриншоту его текущей страницы:
-подкоманда `edit`, скриншот — образец стиля, дальше как в следующем разделе.
-Словами стиль живого продукта не передать.
-
-Знакомый жанр можно назвать коротко — «экран настроек iOS» модель знает
-сама. Длинная спецификация нужна, когда содержание новое или должно совпасть.
-
-Проверен: Sunburst `medium` 1536×1024 — весь текст верен, нижняя четверть
-экрана пуста; тот же промпт на `xhigh` 1920×1088 заполнил экран. Экран
-настроек на русском, 14 подписей, — все буквы верны, включая «ё».
+Not like this — the same screen as a spec gave an empty frame with five
+labels:
 
 ```text
-Use case: ui-mockup
-Asset type: high-fidelity desktop web app screen for design review before coding
-Primary request: a dashboard screen of a personal finance app called "Ledgerly"
-Composition/framing: flat full-bleed screenshot of the browser viewport only, 1536x1024, no device frame, no desk, no hands, no perspective
-Layout: left sidebar 240px with logo "Ledgerly" and nav items "Overview", "Accounts", "Budgets", "Reports", "Settings" ("Overview" active); top bar with page title "Overview" and a search field with placeholder "Search transactions"; main area: row of three KPI cards — "Balance $12,480.32", "Spent this month $2,914.07", "Saved 18%"; below a line chart titled "Cash flow, last 6 months" with month labels "May Jun Jul Aug Sep Oct"; right column card "Recent transactions" with four rows: "Blue Bottle Coffee −$6.50", "Salary +$4,200.00", "Netflix −$15.49", "Whole Foods −$84.12"
-Style/medium: clean modern SaaS UI, Inter-like sans-serif, 8px spacing grid, light theme, white cards with 1px #E5E7EB borders and 12px radius, single accent color #4F46E5
-Text (verbatim): render every label exactly as quoted above, no extra words, no lorem ipsum
-Constraints: crisp legible text at 100% zoom; consistent alignment; no watermark
+Layout: top bar 48px high across the full width with project name "Summer Trip" on the left and an "Export" button on the right; left panel 280px wide with a media library grid of 6 clip thumbnails in 2 columns; center top: preview player 860x480 … Text (verbatim): "Summer Trip", "Export", "Color", "Audio"; no other text
 ```
 
-## Следующий экран той же системы
+## Next screen of the same product
 
-Одобренный экран или скриншот живой страницы становится образцом: он — Image
-1 в `edit`, а промпт говорит, что его не правят, а рисуют новый экран той же
-системы. Мобильную версию даёт тот же образец с размером `1024x1536`.
-Несколько экранов потока можно просить на одном холсте; практики пишут, что
-больше четырёх расходятся по стилю.
+A screenshot of the current or approved screen goes in as Image 1, the design
+reference; the brief lists the new screen's content the same way.
 
-Проверен: и Sunburst, и `gpt-image-2` сохранили сайдбар, шрифт, карточки и
-иконки, весь текст верен.
+Probed: same design system, summary on top, budgets with percentages, the
+overrun flagged; the model's own total was wrong ($351 instead of $271).
 
 ```text
-Image 1 is a style reference only: a screen of the "Ledgerly" web app. Do not edit it; design a NEW screen of the same app.
-Keep from Image 1 exactly: sidebar (logo, nav items, widths), top bar, typography, colors, card style, spacing, icon style, light theme.
-New screen: "Budgets" page ("Budgets" active in the sidebar, page title "Budgets"). Main area: a 2x2 grid of budget cards, each with a category name, a horizontal progress bar and "spent / limit" text: "Groceries $412 / $600", "Dining out $198 / $250", "Transport $96 / $150", "Entertainment $143 / $120" (this one over limit, progress bar red). Above the grid a primary button "New budget" on the right.
-Text (verbatim): render every label exactly as quoted, no extra words.
-Flat full-bleed viewport screenshot, no device frame.
+Image 1 is a screen of the "Ledgerly" finance app — use it only as the design reference and design a new screen of the same app in exactly the same design system.
+
+New screen: Budgets. Make it beautiful and easy to scan. It should include:
+- budgets for Groceries ($412 of $600), Dining out ($198 of $250), Transport ($96 of $150) and Entertainment ($143 of $120 — over the limit, clearly flagged)
+- how much is left this month in total
+- a "New budget" button
+
+Flat screenshot of the app window only.
 ```
 
-## Правка готовой картинки
+## Illustration and photo
 
-Список того, что уцелеет, включает и прежние правки: иначе следующая правка
-откатывает предыдущую.
+Style in words: medium, mood, palette. Room for page text is one more item on
+the list; the model finds its place.
 
-Правки накапливают дрейф: у Sunburst с фразой «keep everything else the same»
-в каждой правке фон заметно поплыл к одиннадцатой (тест Morphed, 2026-10-07).
-Поэтому правь от последней одобренной версии, а не от последнего результата.
-Когда список уцелевшего длиннее самого изменения или правка перестала
-ложиться, сделай один сводный промпт от оригинала.
-
-Маска (`--mask`, PNG с альфой размера первой картинки) указывает область, но
-не запирает её: модель меняет и соседнее. Оставь зазор между областью и тем,
-что двигаться не должно. Если пиксели вне правки обязаны остаться прежними,
-вклей оригинал поверх результата локально.
+Probed: warm editorial illustration with an empty wall for the title.
 
 ```text
-Image 1: product photo of a living room — the edit target.
-Change only the sofa: replace the grey fabric sofa with a cognac leather sofa of the same size and position.
-Keep unchanged: camera angle, framing, room lighting and shadows on the floor, the rug, the plant, the wall art, the window.
-No new objects, no text.
+A wide hero illustration for a blog post about slow mornings. Make it beautiful: calm, warm, editorial, the kind of image that makes you want to read the post. Flat illustration with subtle paper grain, muted sage, cream and terracotta.
+
+It should show:
+- a person reading a paper book at a small kitchen table
+- a steaming cup of tea
+- a cat asleep on the windowsill
+- soft early-morning light from the window
+- a calm empty area where the post title will go
+
+No text, no logos.
 ```
 
-## Референсы
+For a photo, add `photorealistic` and visible texture: skin, fabric, wear.
 
-Рядом с номером называй содержание: «Image 2 (the brown dog)» — практики
-расходятся в том, держит ли модель порядок картинок. Маска всегда относится
-к первой. Проси правку первой картинки, а не «смешай»: «add the dog from
-Image 2 into Image 1».
+## Poster, slide, text in the image
 
-- Позу и выражение называй явно: иначе персонаж приносит из образца наклон
-  головы и пустой взгляд.
-- Чего образцы не показывали, модель придумает. Лечит ещё один образец,
-  а не длиннее промпт.
-- Образец стиля переносит и элементы композиции. В пробе стилевой образец
-  с круглыми плашками у иконок дал иконке плашку, хотя промпт её запрещал.
+Each line of text is a list item in quotes; the main one gets a hierarchy
+word. Name the language of the text. Slides and charts get the real numbers;
+small text needs `high`. An exact chart from data belongs in code: the model
+invents points.
 
-Проверен: Flare `low`, перенос стиля, прозрачный фон.
+Probed: every Russian label correct, including «ё» and «» quotes.
+
+```text
+A vertical poster for a jazz evening in a small bookshop. Make it beautiful: a risograph print look in two inks, deep blue and warm orange on cream paper, cozy and a little bohemian.
+
+It should include:
+- a double bass leaning on a bookshelf in warm lamp light
+- the headline "Тихий джаз" as the largest element
+- "Пятница, 14 ноября · 19:00"
+- "Книжная лавка «Переплёт»"
+
+All text in Russian, each line exactly as quoted and only once, no other text.
+```
+
+## Edit: light, color, style, theme
+
+On a photo with people, add `Do not change faces, facial features,
+expressions or identity in any way`: the model redraws the whole frame.
+
+Probed — each changed only what it named:
+
+```text
+Make this scene a late evening: darker overall, warm light from a table lamp, deep blue night outside the window. Keep everything else unchanged: the person, the book, the cup, the cat, the furniture, the composition and the illustration style.
+```
+
+```text
+Redraw this illustration as a loose watercolor painting with soft bleeding edges and visible paper texture. Keep the composition, the person, the cat, the cup and every object where they are.
+```
+
+```text
+Switch this app screen to a dark theme with an emerald green accent instead of indigo. Keep the layout, every text label, the numbers and the chart exactly as they are.
+```
+
+Drift adds up: in a published test of 40 chained Sunburst edits, each saying
+"keep everything else the same", the background visibly shifted by edit 11.
+When the keep-list grows longer than the change, write one combined brief
+from the original.
+
+## Edit: remove or replace an object
+
+```text
+In this room photo, replace ONLY the grey fabric sofa with a cognac leather sofa of the same size. Preserve the camera angle, room lighting, floor shadows and all surrounding objects. Keep all other aspects of the image unchanged.
+```
+
+## Reference images: style, subject, composition
+
+- Name the new pose and expression, or a person brings the reference's head
+  angle and blank look along.
+- What the references never showed, the model invents: add a reference, not
+  words.
+- A style reference carries composition too: in a probe, the round tiles of
+  the reference icons appeared on the new icon despite `no tile`.
+
+Probed: style transfer onto an icon with a transparent background.
 
 ```text
 Image 1 is a style reference (color palette and rounded flat icon style). Image 2 is the subject.
@@ -129,97 +144,63 @@ Redraw the apple from Image 2 as a flat app icon in the visual style of Image 1.
 Isolated icon on a fully transparent background, no tile, no shadow, no checkerboard.
 ```
 
-## Удаление фона и прозрачный ассет
+## Product
 
-Модель не вырезает объект, а рисует его заново: форма и окраска совпадают,
-мелкая фактура — нет. Поэтому путь выбирают по тому, что дано и что важно:
-
-| Случай | Путь |
-|---|---|
-| плоская графика на ровном фоне: логотип, иконка, ассет с точными цветами | без модели: `uv run -q --with pillow python -I ~/.codex/skills/.system/imagegen/scripts/remove_chroma_key.py --input IN.png --out OUT.png --auto-key border` — бесплатно, пиксели те же; цвет фона не должен встречаться в объекте, иначе станет дырой |
-| фото — и на студийном фоне тоже: у фото фон не ровный, а с тенями и градиентом | правка моделью 2.5 с `--background transparent`; до вызова скажи владельцу, что объект будет перерисован |
-| новый объект, волосы, мех, пух | генерация моделью 2.5 с `--background transparent` — лучший край в замерах практиков |
-| стекло, прозрачная бутылка | ни один путь не вырезает чисто: генерируй сразу на итоговом фоне |
-| нужен именно `gpt-image-2` | сплошной `#00ff00` или `#ff00ff`, которого нет в объекте, затем тот же `remove_chroma_key.py` через `uv` |
-
-Параметр без слов промпта не работает: промпт сильнее параметра, и описанная
-сцена съедает прозрачность. Слова «isolated product shot» в пробе оставили
-под яблоком полупрозрачную белую тень — тень запрещай прямо.
-
-Хвост промпта для новой картинки:
+Unprompted, the model "improves" a product: simplifies the cap, rewrites the
+label. Keep shape and label in words; describe scene and light as mood.
 
 ```text
-Isolated subject on a fully transparent background, full object visible with generous padding. No backdrop, no scenery, no rectangle, no plinth, no checkerboard, no cast shadow, no reflection.
+Image 1 is the product: a glass bottle of cold-brew coffee with a kraft label. Create a photorealistic product photograph of it outdoors at dusk on wet slate, light rain, soft rim light — moody and premium. Preserve the bottle's shape, cap, label text and exact proportions; do not alter the bottle in any way.
 ```
 
-Проверен: Flare и Sunburst убрали фон у готового фото без тени; яблоко
-перерисовано, фактура кожуры отличается.
+## Icon set
+
+A whole set in one call keeps one style across all icons — separate calls
+drift apart. Name the grid and list the icons in reading order; the style is a
+feeling, not a spec. Cut the sheet into files with `scripts/slice_grid.py`
+(`run.md`): a plain grid crop clips icons that cross the cell lines, and
+asking for "generous space" in the brief did not stop that.
+
+Probed: 16 cohesive soft-3D icons in the listed order, transparent background.
 
 ```text
-Remove the background completely. Keep the apple exactly as is: same shape, colors, stem, highlights. No shadow, no ground, no reflection. Output the apple alone on a fully transparent background.
+Create a set of 16 app icons for a personal finance app, arranged in a 4×4 grid. Make them beautiful and cohesive: one shared style, soft 3D with gentle gradients, friendly and premium.
+
+Icons: wallet, credit card, piggy bank, chart going up, coins, receipt, calendar, shopping bag, house, car, airplane, gift, bell, lock, settings gear, user profile.
+
+Fully transparent background, no text, no grid lines.
 ```
 
-В следующих правках прозрачного ассета повторяй «preserve the transparent
-background».
+## Logo
 
-## Текст, плакат, инфографика, слайд
-
-- Закрой надписи фразой «Render every line verbatim, no extra characters, no
-  other text anywhere in the frame». Редкое слово — по буквам. Сколько раз
-  надпись появляется, скажи числом.
-- Язык надписей назови прямо: «all text in Russian».
-- Мелкий и плотный текст — `high` и выше. Блок длиннее ста слов начинает
-  путать буквы в последних строках.
-- Точный график или карта — в коде: модель выдумывает точки и искажает
-  длину столбцов. Картинке достаются иллюстративные графики, и цифры в
-  промпт — настоящие.
-- Шум и лишняя фактура в инфографике: «clean flat regions, restrained
-  background detail, minimal texture».
+Describe the brand and the feeling, not the geometry. A generated logo is a
+sketch for finding a form; a logo for the site is then redrawn as SVG.
 
 ```text
-Use case: ads-marketing
-Asset type: vertical event poster, 1024x1536
-Primary request: poster for a jazz evening in a small bookshop
-Layout: top third — headline "Тихий джаз" in a heavy condensed serif, largest element; middle — illustration of a double bass leaning on a bookshelf, warm lamp light; bottom band — "Пятница, 14 ноября · 19:00" and below it "Книжная лавка «Переплёт»"
-Text (verbatim): all text in Russian, each line exactly as quoted and exactly once, no extra characters, no other text anywhere in the frame
-Style/medium: risograph print look, two inks — deep blue and warm orange on cream paper
+Create an original, non-infringing logo for "Field & Flour", a local bakery. It should feel warm, simple and timeless: clean vector-like shapes, a strong silhouette, balanced negative space, readable at small sizes. Fully transparent background, a single centered logo with generous padding, no backdrop, no checkerboard, no watermark.
 ```
 
-## Предмет и логотип
+## Series with one character
 
-Без оговорки модель «улучшает» товар: упрощает крышку, переписывает
-этикетку. Фраза сохранения — форма, детали, этикетка, пропорции — и доля
-кадра числом. Логотип из генератора — эскиз для поиска формы.
+First a character image the owner approved; it goes in as Image 1 for every
+next frame. The same keep-sentence, word for word, in every brief of the
+series. Describe the new scene and pose explicitly.
 
 ```text
-Image 1 is the product: a glass bottle of cold-brew coffee with a kraft label.
-Place it on a wet slate surface outdoors at dusk, soft rim light from behind, light rain droplets on the bottle.
-The bottle takes up about 40% of the frame, slightly left of center.
-Preserve the bottle's shape, cap, label text and exact proportions; do not alter the bottle in any way.
-Photorealistic product photograph, shallow depth of field.
+Continue the children's book story with the character from Image 1. Do not redesign the character: same round face, short red curly hair, green raincoat with yellow buttons, brown boots, same watercolor style and palette.
+New scene: she kneels in a snowy forest after a storm, gently lifting a frightened squirrel out of a fallen tree, smiling at it. Warm and comforting mood. No text, no watermark.
 ```
 
-## Серия с одним персонажем
+## Sketch to image
 
-Сначала образец персонажа, одобренный владельцем; он идёт Image 1 в каждый следующий
-кадр. Одна и та же фраза сохранения слово в слово дописывается к каждому
-промпту серии. Позу и действие называй явно. Независимые вызовы без образца
-расходятся по стилю.
+Here the sketch owns the layout: `Turn this drawing into a photorealistic
+image. Preserve the exact layout, proportions and perspective. Do not add new
+elements or text.`
 
-```text
-Image 1 is the approved character anchor. Do not redesign the character.
-Keep exactly as in Image 1: round face, short red curly hair, green raincoat with yellow buttons, brown boots, the same watercolor children's-book style and palette.
-New scene: she kneels in a snowy forest after a storm, gently lifting a frightened squirrel out of a fallen tree, looking at the squirrel with a soft smile.
-No text, no watermark.
-```
+## Restoration, colorizing, "enhance"
 
-## Реставрация, раскраска, «улучшить»
-
-Раскрашивание старого фото и правку лица делай на модели 2.5: `gpt-image-2`
-в опубликованной пробе испортил лица. Добавь замок личности: «Do not change
-faces, facial features, expressions or identity in any way» — и покажи
-владельцу рядом с оригиналом.
-
-Повышение чёткости модель делает перерисовкой, а не восстановлением деталей:
-вблизи выдуманные мелочи. Если нужна верность оригиналу, предложи
-отдельный апскейлер.
+Colorize old photos and edit faces with a 2.5 model: `gpt-image-2` ruined
+faces in a published test. Add `Do not change faces, facial features,
+expressions or identity in any way` and show the owner the result next to
+the original. "Enhance" is a redraw, not recovered detail: for fidelity,
+suggest a dedicated upscaler.

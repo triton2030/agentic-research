@@ -1,150 +1,133 @@
 ---
 name: 1codex-image
 description: >-
-  Use when a raster image must be made or changed: generate, edit, combine
-  references, cut out a background, or mock up a UI screen. Recraft by name:
-  1recraft.
+  Use when a raster image must be made or changed: generate, edit, recolor,
+  restyle, combine references, cut out a background, mock up a UI screen, or
+  draw an icon set. Recraft by name: 1recraft.
 ---
 
-# 1codex-image — картинки моделями OpenAI
+# 1codex-image — a brief the image model can draw from
 
-## Контекст
+## Context
 
-Владелец выбрал этот скил основным путём растровых картинок в Claude: прямой
-вызов API его ключом отвечает за 15–40 секунд и даёт все параметры — размер,
-качество, прозрачный фон, картинки-референсы. Recraft — только по его имени,
-через `1recraft`; Codex — когда владелец назвал Codex, через `1codex`.
+Raster images here are made by OpenAI GPT Image with the owner's API key; it
+is his main image route. Recraft only when he names it (`1recraft`), Codex
+only when he names it (`1codex`).
 
-Если API недоступен — нет ключа, кончился баланс, сбой, — назови причину и
-предложи тред Codex по `1codex`, но сам туда не переключайся: Codex тратит
-лимит подписки владельца, и этот выбор его.
+A bad image almost always comes from the prompt. Agents write it out of habit
+as a technical spec: where each thing sits and what is under what, pixel
+sizes, a color for every element, "no other text". The image model is a
+strong designer, and from a spec it draws exactly the dictated skeleton and
+nothing more. The owner calls this the most frequent mistake agents make with
+images. One probe on the same video editor screen: a brief saying "make it
+beautiful" plus a list of what must be there gave a rich professional
+workspace; a spec with positions, pixels, hex colors and "no other text" gave
+an empty frame with five labels.
 
-Каждая картинка оплачивается с баланса API владельца. Обычная стоит около
-цента, но дорогой режим или серия незаметно складываются в доллары: цену
-считаешь ты, сам API о ней не предупреждает.
+The model also does far more than draw from scratch. It edits an existing
+image from words: recolors it, makes it darker or lighter, changes the time of
+day or the art style, switches a UI to a dark theme while keeping its text and
+layout, removes or replaces objects, moves an object from one image into
+another, draws a new screen in the style of a screenshot, and returns an
+object on a transparent background. It also draws a whole cohesive icon set in
+one call: 16 icons in a 4×4 grid on a transparent background. Reach for this
+before saying "that can't be done". Changing an existing flat graphic, or an
+exact chart from data, stays local or in code: the model would redraw it.
 
-Ключ лежит в `~/.config/openai/api-key`. Он не печатается, не попадает в
-проект, промпт, URL или лог.
+## Task
 
-Генерирует официальный скрипт OpenAI из Codex:
-`~/.codex/skills/.system/imagegen/scripts/image_gen.py`. Он обновляется вместе
-с Codex, поэтому его не правят и не копируют. Его справочники рядом написаны
-для встроенного генератора Codex и о моделях устарели: совет уходить на
-`gpt-image-1.5` ради прозрачности ведёт к модели, которую OpenAI выключает
-2026-12-01.
+Write a short brief that gives the model the purpose, the feeling and what
+must be there, and leaves the rest to its imagination; run it per
+[run.md](references/run.md) and check the result.
 
-Модели на 2026-10-30 — замер этим ключом:
+## Goal
 
-| Модель | Что показала |
-|---|---|
-| `gpt-image-2.5-sunburst` | базовая модель качества по OpenAI; макет экрана — весь текст верен, 18 с; прозрачный фон есть |
-| `gpt-image-2.5-flare` | быстрая; тот же макет — 14 с, одна подпись испорчена; прозрачный фон есть |
-| `gpt-image-2` | предыдущая; текст верен, 29 с; `background=transparent` API отклоняет, хотя документация зовёт его preview |
+An image that serves its purpose and shows the model's own design taste —
+often better than anything the brief could spell out. The owner uses this
+model for its imagination: complex designs, icons, whole icon sets. In his
+experience, the longer and more detailed the brief, the worse the image. Pin
+only what he pinned: exact text, a brand color, what an edit must preserve.
 
-Основная модель по выбору владельца — снимок `gpt-image-2.5-sunburst-2026-09-08`.
-Снимок с датой не меняется, когда OpenAI переводит имя без даты на новую версию.
+## When you write a brief for a new image
 
-Скрипт знает только `gpt-image-2`: у моделей 2.5 он пускает размеры
-`1024x1024`, `1536x1024`, `1024x1536`, `auto` и качество до `high`. Остальное
-API принимает — прямой вызов по [api.md](references/api.md).
+The order joins the owner's rule with the examples in OpenAI's GPT Image 2.5
+prompting guide:
 
-## Задача
+1. What it is and what for, in one sentence: `A desktop video editing app for
+   a product called "Cutline" — the main editing workspace.` OpenAI's examples
+   open with `Create a …`. The intended use sets the model's mode and level of
+   polish.
+2. The impression — quality, mood, style, palette in words:
+   `Make it beautiful: a modern, premium professional tool with a
+   design-award level of polish. Dark theme with one vivid accent color.`
+   OpenAI's anchor phrase for UI is `It should look like a real,
+   well-designed, beautiful app`; for photos, write `photorealistic`.
+3. `It should include:` — a list of what must be in the image, as things, not
+   places. For a complex UI: the windows and panels and what each shows. Name
+   what matters most in words of hierarchy: `the headline as the largest
+   element`.
+4. Exact text only where the owner needs it, in quotes. Other labels the
+   model invents plausibly — so for a UI, do not add `no other text`.
+5. Short output conditions: `Flat screenshot of the app window only, no
+   device frame`.
 
-Сделай картинку по просьбе — вызовом модели OpenAI, а где модель не нужна,
-локально, — сохрани её вместе с точным промптом там, где ей жить, проверь её
-сам и назови цену.
+Test before sending: if a line of the brief says where something sits, what
+it is under, or how many pixels it takes, and the owner never said so, delete
+it. Every such line takes a decision away from the model, and what it was
+told to leave out it will not draw. If the owner dictated a layout, keep his
+layout as he gave it, in English.
 
-## Цель
+Length: probed briefs that worked ran 65–150 words for a new image and 30–40
+for an edit; a brief grows only with the number of items, never with a
+description of layout.
 
-Картинка, пригодная для своего места, за одну-две попытки. Точность заказа
-важнее экономии центов.
+Write the brief in English, as all of OpenAI's examples are; the guide sets no
+language. Labels go in the language they need on the image — Russian text came
+out letter-perfect in probes. A number the model has to compute itself may
+come out wrong (a probe got a budget total wrong): give important numbers
+ready-made.
 
-## Когда картинка — не тот инструмент
+## When you edit an existing image
 
-Иконка интерфейса, логотип для темы и масштаба, схема — это SVG или код: им
-нужны перекраска и чёткость при любом размере. Растр — иллюстрация, фото,
-предмет с объёмом и фактурой, макет экрана до вёрстки.
+The image goes in as Image 1. The brief states the target state in plain
+words, then `Keep everything else unchanged:` and what the owner needs kept,
+including what earlier edits changed — or the next edit rolls them back. Do
+not describe the whole picture again. A simple change of condition takes one
+sentence: `Make it look like a winter evening with snowfall.`
 
-Ровный фон у готовой плоской графики — логотипа, иконки — снимают локально,
-без модели: бесплатно, и пиксели остаются те же. Модель же объект не
-вырезает, а рисует заново. Команда — в [prompts.md](references/prompts.md),
-раздел про удаление фона.
+The model redraws the whole picture, not just the changed part: details drift,
+and they drift more with every chained edit. Edit from the last approved
+version, not from the latest output; when the keep-list grows longer than the
+change, write one combined brief from the original. When pixels outside the
+change must stay exact, paste the original back over them locally.
 
-## Когда выбираешь модель и параметры
+## When you pass reference images
 
-| Нужно | Модель | `--quality` |
-|---|---|---|
-| обычная картинка, макет, правка | `gpt-image-2.5-sunburst-2026-09-08` | `medium` |
-| черновик, поиск формы, варианты | `gpt-image-2.5-flare` | `low` |
-| мелкий или плотный текст, финальный ассет, крупный размер | `gpt-image-2.5-sunburst-2026-09-08` | `high`, через API — `xhigh` |
+Give each one a number and a role in one phrase — `Image 1 is a screen of the
+"Ledgerly" app — use it only as the design reference`, `Image 2 is the
+subject` — and say what goes where: `Place the dog from Image 2 into Image 1`.
+A new screen of an existing product is drawn from a screenshot of its current
+screen: words cannot carry a live product's style. No screenshot at hand —
+capture the running screen or ask the owner for one.
 
-Цена за картинку по калькулятору OpenAI для 2.5 при 1024×1024: `low` ≈ $0.006,
-`medium` ≈ $0.013, `high` ≈ $0.05, `xhigh` ≈ $0.09, `max` ≈ $0.21; 2048×2048 —
-примерно вдвое дороже. Каждая входная картинка добавляет около $0.01
-(замер: две картинки — 2560 входных токенов).
+## When you need a transparent background
 
-Спроси владельца и назови сумму перед `max` и перед серией дороже $1. Один
-вызов — один результат, если не просили вариантов.
+Read [transparent.md](references/transparent.md) first: it decides whether
+the model is needed at all, which models can do it, and the brief's wording.
 
-Размер выбирай по месту картинки: экран сайта — `1536x1024` или через API
-`1920x1088`, мобильный экран — `1024x1536`, иконка и предмет — `1024x1024`.
-Когда Image 1 — цель правки, держи её пропорцию: широкое фото, отданное в
-квадрат, модель перекадрирует, и объект заполняет весь кадр. Образец стиля
-или персонажа пропорцию не задаёт.
+## Reference files
 
-## Когда пишешь промпт
+- Every call: [run.md](references/run.md) — command, model, quality, size,
+  cost, what to do when a call fails.
+- Before the brief of your case: the example in
+  [prompts.md](references/prompts.md) — complex UI, next screen, illustration
+  and photo, poster and slide, edits, references, product, logo, character
+  series, icon set, restoration.
+- Size or quality the script rejects, `xhigh`, `max`: [api.md](references/api.md).
 
-Промпт самодостаточный: модель не видела чата. Пиши его по-английски, как
-образцы OpenAI; надписи — на своём языке. Начни с того, что это и где будет
-жить, затем сцена, объект, детали, ограничения. Короткие строки с метками и
-абзацы работают одинаково — бери то, что легче править.
+## When the image arrives
 
-Длина следует заказу. Пара фраз оставляет модели кадр, свет и стиль; заданные
-макет, бренд или текст требуют перечислить всё, что должно совпасть. Не
-добавляй объектов, надписей и сюжета, которых владелец не просил.
-
-Видимый текст — дословно в кавычках с `no extra text`. Каждой входной картинке
-— номер и роль: `Image 1: edit target`, `Image 2: style reference`. В правке —
-`change only X; keep Y unchanged`, и этот список повторяется в каждой
-следующей правке.
-
-Примеры по случаям — иллюстрация с нуля, макет интерфейса, следующий экран
-той же системы, правка, референсы, удаление фона, текст и инфографика,
-предмет и логотип, серия с одним персонажем, реставрация и лица — в
-[prompts.md](references/prompts.md). Открой нужный раздел перед первым
-вызовом своего случая.
-
-## Когда запускаешь
-
-Промпт сначала ложится файлом рядом с будущей картинкой: файл передаётся
-скрипту и остаётся записью того, что ушло в модель. Место — где картинка
-будет жить: ассет — в папке ассетов проекта, макет и черновик — в рабочей
-папке по `1work-artifacts`.
-
-```bash
-OPENAI_API_KEY=$(cat ~/.config/openai/api-key) uv run -q --with openai --with pillow \
-  python -I ~/.codex/skills/.system/imagegen/scripts/image_gen.py generate \
-  --model gpt-image-2.5-sunburst-2026-09-08 --quality medium --size 1536x1024 \
-  --prompt-file "$DIR/$NAME.prompt.md" --no-augment --out "$DIR/$NAME.png"
-```
-
-- Правка и референсы — подкоманда `edit` с `--image` на каждую картинку;
-  порядок флагов — это Image 1, Image 2 в промпте.
-- Прозрачный фон — `--background transparent --output-format png`.
-- `--no-augment` обязателен: без него скрипт оборачивает промпт своими
-  метками, и файл промпта перестаёт быть точной записью.
-- Существующий файл скрипт не перезапишет; новая попытка — `$NAME-v2`.
-
-## Когда картинка пришла
-
-Открой файл через Read и сверь с заказом: каждую надпись буквально, то, что
-правка должна была сохранить, отсутствие лишнего. О промахе скажи и поправь
-одно условие промпта: новая попытка — новое списание.
-
-Прозрачность проверяй пикселями: режим RGBA и заметная доля пикселей с альфой
-0. Нарисованная шахматка выглядит так же, но это краска. Сложи картинку с
-тёмным и светлым фоном: полупрозрачная тень или ореол вокруг объекта — брак,
-их запрещает промпт. Тело объекта приходит с альфой 250–253, а не 255 — это
-норма; яркие крапинки только в сыром просмотре — пиксели почти без альфы.
-
-В ответе дай ссылку на файл, модель, качество, размер и оценку цены.
+Open the image and check it against the request: every item of the list is
+there, exact text matches letter by letter, an edit kept what it had to. Tell
+the owner about a miss and fix it with one change to the brief: every attempt
+is paid.
