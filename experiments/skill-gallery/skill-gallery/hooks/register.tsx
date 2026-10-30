@@ -193,20 +193,8 @@ export const register: Register = on => {
     const folded = await read($, collapsed)
     const sections = sectionsOf(list, favs)
 
-    // A muted plate behind each row on the desktop; the terminal keeps its own.
-    const isDesktop = e.surface === 'desktop'
-    const plate = isDesktop ? 'rgba(255, 255, 255, 0.06)' : undefined
-    const plateHover = isDesktop ? 'rgba(255, 255, 255, 0.12)' : undefined
-
     const row = (name: string, label: string, isFav: boolean) => (
-      <Box
-        key={`row:${name}`}
-        flexDirection="row"
-        gap="sm"
-        paddingX="sm"
-        backgroundColor={plate}
-        hover={plateHover ? { backgroundColor: plateHover } : undefined}
-      >
+      <Box key={`row:${name}`} flexDirection="row" gap={1}>
         <Button
           key={`fav:${name}`}
           plain
