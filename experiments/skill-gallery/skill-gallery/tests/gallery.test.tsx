@@ -91,16 +91,38 @@ test('favorites from an earlier session come back', async ($, on) => {
   await ui.unmount()
 })
 
-test('a pane that is not up leaves a reopen button above the prompt', async ($, on) => {
-  mock.store(on)
-  let opens = 0
+const BAND = { plugin: 'skill-gallery', component: 'AbovePrompt', props: {} } as const
+
+test('favorites sit in the row above the prompt and insert on click', async ($, on) => {
+  mock.store(on, { favorites: ['pk:beta'] })
+  const fills: string[] = []
   on('command.register', () => ({ value: { command: 'skill-gallery' } }))
   on('command.list', () => ({ value: COMMANDS }))
-  // The first open is not placed (as after a close); the reopen press is.
-  on('ui.open', () => {
-    opens += 1
-    return { value: { isPlaced: opens > 1 } }
+  // Undrawn (no window yet) still counts as open: no reopen button.
+  on('ui.open', () => ({ value: { isPlaced: false, reason: 'no-surface' } }))
+  on('prompt.fill', (_, e) => {
+    fills.push(e.text)
+    return { isFilled: true }
   })
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
+
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount({ ...BAND, surface })
+    expect((await ui.find({ key: 'band:pk:beta' }))?.text).toBe('beta')
+    expect(await ui.find({ key: 'reopen' })).toBeUndefined()
+    await ui.press({ key: 'band:pk:beta' })
+    await ui.unmount()
+  }
+  expect(fills).toEqual(['/pk:beta ', '/pk:beta '])
+})
+
+test('with no favorites and the pane open, the row is left to the engine', async ($, on) => {
+  mock.store(on)
+  on('command.register', () => ({ value: { command: 'skill-gallery' } }))
+  on('command.list', () => ({ value: COMMANDS }))
+  on('ui.open', () => ({ value: { isPlaced: true } }))
   on('ui.render', ($, e) => {
     const { Text } = $.ui.resolve(e)
     return <Text>engine</Text>
@@ -108,18 +130,30 @@ test('a pane that is not up leaves a reopen button above the prompt', async ($, 
   on('session.start', (_, e) => ({ cwd: e.cwd }))
 
   await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
-  const ui = await $.ui.mount({
-    plugin: 'skill-gallery',
-    component: 'AbovePrompt',
-    surface: 'desktop',
-    props: {},
-  } as const)
+  const ui = await $.ui.mount({ ...BAND, surface: 'desktop' })
+  expect(await ui.find({ type: 'Text', text: 'engine' })).toBeDefined()
+  await ui.unmount()
+})
 
+test('a closed pane leaves a reopen button in the row', async ($, on) => {
+  mock.store(on)
+  let opens = 0
+  on('ui.open', () => {
+    opens += 1
+    return { value: { isPlaced: true } }
+  })
+  // The pane as ui.close leaves it, for the first read (the drawing).
+  let isFirst = true
+  on('state.get', { plugin: 'skill-gallery', key: 'isOpen' }, ($, e, next) => {
+    if (!isFirst) return next(e)
+    isFirst = false
+    return { value: { value: false, version: 0 } }
+  })
+
+  const ui = await $.ui.mount({ ...BAND, surface: 'desktop' })
   expect((await ui.find({ key: 'reopen' }))?.text).toBe('☆ skills')
   await ui.press({ key: 'reopen' })
-  expect(opens).toBe(2)
-  expect(await ui.find({ key: 'reopen' })).toBeUndefined()
-  expect(await ui.find({ type: 'Text', text: 'engine' })).toBeDefined()
+  expect(opens).toBe(1)
   await ui.unmount()
 })
 

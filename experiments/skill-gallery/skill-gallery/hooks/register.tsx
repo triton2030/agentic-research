@@ -66,9 +66,11 @@ async function toggleSection($: EngineInterface, title: string) {
   await $.store.set(COLLAPSED_KEY, next)
 }
 
+// An open pane may wait undrawn (no window attached yet, as right after a
+// reload); it is still open. Only ui.close marks it closed.
 async function openPane($: EngineInterface) {
-  const opened = await $.ui.open({ id: PANE, title: TITLE })
-  await update($, isOpen, () => opened.isPlaced)
+  await $.ui.open({ id: PANE, title: TITLE })
+  await update($, isOpen, () => true)
 }
 
 async function insertSkill($: EngineInterface, name: string) {
@@ -142,16 +144,31 @@ export const register: Register = on => {
     return result
   })
 
-  // A tiny reopen button above the prompt, only while the pane is closed.
+  // The row above the prompt: favorites to click, and a tiny reopen button
+  // while the pane is closed.
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
-    if (e.props.hasSurvey || (await read($, isOpen))) return next(e)
-    const { Box, Button } = $.ui.resolve(e)
+    if (e.props.hasSurvey) return next(e)
+    const favs = await read($, favorites)
+    const isClosed = !(await read($, isOpen))
+    if (favs.length === 0 && !isClosed) return next(e)
+    const { Box, Button, Text } = $.ui.resolve(e)
 
     return (
-      <Box>
-        <Button key="reopen" plain dimColor onPress={() => openPane($)}>
-          ☆ skills
-        </Button>
+      <Box flexDirection="row" flexWrap="wrap" columnGap={2}>
+        {favs.length > 0 && <Text dimColor>★</Text>}
+        {favs.map(name => (
+          <Button
+            key={`band:${name}`}
+            plain
+            label={shortName(name)}
+            onPress={() => insertSkill($, name)}
+          />
+        ))}
+        {isClosed && (
+          <Button key="reopen" plain dimColor onPress={() => openPane($)}>
+            ☆ skills
+          </Button>
+        )}
       </Box>
     )
   })
