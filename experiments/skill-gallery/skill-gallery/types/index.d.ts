@@ -6,6 +6,7 @@ declare module 'claude-code' {
       skills: Shaped<SkillEntry[]>
       favorites: Shaped<string[]>
       expanded: Shaped<string[]>
+      agents: Shaped<SkillEntry[]>
       isOpen: boolean
     }
   }

@@ -10,11 +10,20 @@ const TITLE = 'Skills'
 const FAVORITES_KEY = 'favorites'
 // Sections are folded unless listed here.
 const EXPANDED_KEY = 'expanded'
+// The agent types last offered to the model, so a new session lists them
+// before its first request.
+const AGENTS_KEY = 'agents'
+// A plugin section smaller than this goes under Остальное.
+const MIN_SECTION = 5
+// Favorites and rows name an agent by the mention that invokes it.
+const AGENT_PREFIX = '@agent-'
 
 const FAVORITES = 'Избранное'
 const MINE = 'Мои'
 const OTHER_PLUGINS = 'Плагины'
 const COMMANDS = 'Команды'
+const AGENTS = 'Агенты'
+const REST = 'Остальное'
 
 // Change a tag when that value's form changes: old stored values are then ignored.
 const skills = atom({ plugin: 'skill-gallery', key: 'skills' } as const, [], {
@@ -25,6 +34,9 @@ const favorites = atom({ plugin: 'skill-gallery', key: 'favorites' } as const, [
 })
 const expanded = atom({ plugin: 'skill-gallery', key: 'expanded' } as const, [], {
   shape: 'expanded-1',
+})
+const agents = atom({ plugin: 'skill-gallery', key: 'agents' } as const, [], {
+  shape: 'agents-1',
 })
 const isOpen = atom({ plugin: 'skill-gallery', key: 'isOpen' } as const, false)
 
@@ -47,11 +59,39 @@ async function loadList($: EngineInterface, key: string) {
     : []
 }
 
+async function loadAgents($: EngineInterface): Promise<SkillEntry[]> {
+  const stored = await $.store.get(AGENTS_KEY)
+  if (!Array.isArray(stored)) return []
+
+  return stored.filter(
+    (x): x is SkillEntry =>
+      typeof x === 'object' &&
+      x !== null &&
+      typeof (x as SkillEntry).name === 'string' &&
+      typeof (x as SkillEntry).description === 'string' &&
+      typeof (x as SkillEntry).source === 'string',
+  )
+}
+
 async function loadSaved($: EngineInterface) {
   const favs = await loadList($, FAVORITES_KEY)
   const opened = await loadList($, EXPANDED_KEY)
+  const known = await loadAgents($)
   await update($, favorites, () => favs)
   await update($, expanded, () => opened)
+  await update($, agents, () => known)
+}
+
+// Keeps an agent type the engine offered; writes only when it is new.
+async function noteAgent($: EngineInterface, entry: SkillEntry) {
+  const seen = await read($, agents)
+  if (seen.some(a => a.name === entry.name)) return
+  const stored = await loadAgents($)
+  const next = [...stored.filter(a => a.name !== entry.name), entry].sort(
+    (a, b) => a.name.localeCompare(b.name),
+  )
+  await $.store.set(AGENTS_KEY, next)
+  await update($, agents, () => next)
 }
 
 function toggled(list: string[], item: string) {
@@ -84,8 +124,10 @@ async function openPane($: EngineInterface) {
   await update($, isOpen, () => true)
 }
 
-async function insertSkill($: EngineInterface, name: string) {
-  await $.prompt.fill({ text: `/${name} `, mode: 'insert' })
+// A skill or command goes in as /name, an agent as its @agent-name mention.
+async function insertItem($: EngineInterface, id: string) {
+  const text = id.startsWith(AGENT_PREFIX) ? `${id} ` : `/${id} `
+  await $.prompt.fill({ text, mode: 'insert' })
 }
 
 // "plugin:skill" goes under its plugin; the rest under Мои or Плагины.
@@ -104,28 +146,57 @@ function shortName(name: string) {
   return colon > 0 ? name.slice(colon + 1) : name
 }
 
-type Section = { title: string; names: string[]; isPlugin: boolean }
+function agentName(id: string) {
+  return id.startsWith(AGENT_PREFIX) ? id.slice(AGENT_PREFIX.length) : id
+}
 
-function sectionsOf(list: SkillEntry[], favs: string[]): Section[] {
-  const groups = new Map<string, string[]>()
+type Item = { id: string; label: string }
+type Section = { title: string; items: Item[] }
+
+function sectionsOf(
+  list: SkillEntry[],
+  agentList: SkillEntry[],
+  favs: string[],
+): Section[] {
+  const groups = new Map<string, Item[]>()
+  const add = (title: string, item: Item) =>
+    groups.set(title, [...(groups.get(title) ?? []), item])
+
   for (const skill of list) {
     if (favs.includes(skill.name)) continue
     const title = sectionOf(skill)
-    groups.set(title, [...(groups.get(title) ?? []), skill.name])
+    const isPlugin = title !== MINE && title !== COMMANDS && title !== OTHER_PLUGINS
+    add(title, { id: skill.name, label: isPlugin ? shortName(skill.name) : skill.name })
   }
-  const rank = (t: string) =>
-    t === MINE ? 0 : t === COMMANDS ? 1 : t === OTHER_PLUGINS ? 3 : 2
-  const titles = [...groups.keys()].sort(
-    (a, b) => rank(a) - rank(b) || a.localeCompare(b),
-  )
-  const result: Section[] = titles.map(title => ({
-    title,
-    names: groups.get(title) ?? [],
-    isPlugin: title !== MINE && title !== OTHER_PLUGINS && title !== COMMANDS,
-  }))
-  if (favs.length > 0) {
-    result.unshift({ title: FAVORITES, names: favs, isPlugin: false })
+
+  // Small plugin sections and loose plugin commands go under Остальное.
+  const rest: Item[] = []
+  for (const [title, items] of [...groups.entries()]) {
+    const isCore = title === MINE || title === COMMANDS
+    if (isCore || (title !== OTHER_PLUGINS && items.length >= MIN_SECTION)) continue
+    rest.push(...items.map(item => ({ id: item.id, label: item.id })))
+    groups.delete(title)
   }
+
+  const agentItems = agentList
+    .map(a => `${AGENT_PREFIX}${a.name}`)
+    .filter(id => !favs.includes(id))
+    .map(id => ({ id, label: agentName(id) }))
+
+  const pluginTitles = [...groups.keys()]
+    .filter(t => t !== MINE && t !== COMMANDS)
+    .sort((a, b) => a.localeCompare(b))
+
+  const result: Section[] = []
+  const push = (title: string, items: Item[] | undefined) => {
+    if (items && items.length > 0) result.push({ title, items })
+  }
+  push(FAVORITES, favs.map(id => ({ id, label: agentName(id) })))
+  push(MINE, groups.get(MINE))
+  push(COMMANDS, groups.get(COMMANDS))
+  push(AGENTS, agentItems)
+  for (const title of pluginTitles) push(title, groups.get(title))
+  push(REST, rest.sort((a, b) => a.label.localeCompare(b.label)))
 
   return result
 }
@@ -158,6 +229,13 @@ export const register: Register = on => {
     return result
   })
 
+  on('agent.offer', async ($, e, next) => {
+    const result = await next(e)
+    await noteAgent($, { name: e.agent, description: e.description, source: e.source })
+
+    return result
+  })
+
   // The row above the prompt: favorites to click, and a tiny reopen button
   // while the pane is closed.
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
@@ -174,8 +252,8 @@ export const register: Register = on => {
           <Button
             key={`band:${name}`}
             plain
-            label={shortName(name)}
-            onPress={() => insertSkill($, name)}
+            label={shortName(agentName(name))}
+            onPress={() => insertItem($, name)}
           />
         ))}
         {isClosed && (
@@ -195,22 +273,23 @@ export const register: Register = on => {
     // Section titles in a dark gray on the desktop; the terminal's dim elsewhere.
     const titleColor =
       e.surface === 'desktop' ? 'rgba(255, 255, 255, 0.42)' : undefined
-    const sections = sectionsOf(list, favs)
+    const agentList = await read($, agents)
+    const sections = sectionsOf(list, agentList, favs)
 
-    const row = (name: string, label: string, isFav: boolean) => (
-      <Box key={`row:${name}`} flexDirection="row" gap={1}>
+    const row = (item: Item, isFav: boolean) => (
+      <Box key={`row:${item.id}`} flexDirection="row" gap={1}>
         <Button
-          key={`fav:${name}`}
+          key={`fav:${item.id}`}
           plain
           dimColor={!isFav}
           label={isFav ? '★' : '☆'}
-          onPress={() => toggleFavorite($, name)}
+          onPress={() => toggleFavorite($, item.id)}
         />
         <Button
-          key={`skill:${name}`}
+          key={`skill:${item.id}`}
           plain
-          label={label}
-          onPress={() => insertSkill($, name)}
+          label={item.label}
+          onPress={() => insertItem($, item.id)}
         />
       </Box>
     )
@@ -220,7 +299,8 @@ export const register: Register = on => {
         <Box flexDirection="row" gap={1}>
           <Text dimColor>
             {list.filter(s => s.source !== 'builtin').length} skills ·{' '}
-            {list.filter(s => s.source === 'builtin').length} commands
+            {list.filter(s => s.source === 'builtin').length} commands ·{' '}
+            {agentList.length} agents
           </Text>
           <Button key="refresh" plain dimColor onPress={() => refreshAll($)}>
             refresh
@@ -247,17 +327,11 @@ export const register: Register = on => {
                 </Text>
                 <Text color={titleColor} dimColor={!titleColor}>
                   {' '}
-                  {section.names.length}
+                  {section.items.length}
                 </Text>
               </Button>
               {!isFolded &&
-                section.names.map(name =>
-                  row(
-                    name,
-                    section.isPlugin ? shortName(name) : name,
-                    section.title === FAVORITES,
-                  ),
-                )}
+                section.items.map(item => row(item, section.title === FAVORITES))}
             </Box>
           )
         })}
