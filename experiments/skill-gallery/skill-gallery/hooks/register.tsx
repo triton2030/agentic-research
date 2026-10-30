@@ -181,25 +181,29 @@ export const register: Register = on => {
     const sections = sectionsOf(list, favs)
 
     const row = (name: string, label: string, isFav: boolean) => (
-      <Box key={`row:${name}`} flexDirection="row" gap={1}>
+      <Box key={`row:${name}`} flexDirection="row" gap="sm" paddingY="xs">
         <Button
           key={`fav:${name}`}
           plain
           dimColor={!isFav}
           label={isFav ? '★' : '☆'}
           onPress={() => toggleFavorite($, name)}
-        />
+        >
+          <Text size="heading">{isFav ? '★' : '☆'}</Text>
+        </Button>
         <Button
           key={`skill:${name}`}
           plain
           label={label}
           onPress={() => insertSkill($, name)}
-        />
+        >
+          <Text size="heading">{label}</Text>
+        </Button>
       </Box>
     )
 
     return (
-      <Box flexDirection="column" gap={1}>
+      <Box flexDirection="column" gap="lg">
         <Box flexDirection="row" gap={1}>
           <Text dimColor>{list.length} skills</Text>
           <Button key="refresh" plain dimColor onPress={() => refresh($)}>
@@ -210,15 +214,21 @@ export const register: Register = on => {
           const isFolded = folded.includes(section.title)
 
           return (
-            <Box key={`section:${section.title}`} flexDirection="column">
+            <Box
+              key={`section:${section.title}`}
+              flexDirection="column"
+              gap="xs"
+            >
               <Button
                 key={`sec:${section.title}`}
                 plain
                 onPress={() => toggleSection($, section.title)}
               >
-                {isFolded ? '▸ ' : '▾ '}
-                <Text bold>{section.title}</Text>
-                <Text dimColor> {section.names.length}</Text>
+                <Text size="title" weight="bold">
+                  {isFolded ? '▸ ' : '▾ '}
+                  {section.title}
+                </Text>
+                <Text size="body" dimColor> {section.names.length}</Text>
               </Button>
               {!isFolded &&
                 section.names.map(name =>
