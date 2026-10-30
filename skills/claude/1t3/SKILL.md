@@ -255,6 +255,9 @@ be given this way: the owner gives them in the app.
 ## When the thread has finished
 
 `status: "completed"` means the turn ended, not that the work is right.
+Read its final message with `~/.t3/bin/t3 thread show '<threadId>' --messages 1`:
+one call of plain text, where `t3_thread_read` returns JSON and needs the
+last item's position.
 
 - Accept a doer by `git status` and `git diff` of its zone against the brief
   and every message you sent, and rerun the check yourself: the final message

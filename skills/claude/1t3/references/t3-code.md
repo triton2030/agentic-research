@@ -281,8 +281,14 @@ In T3 Code 0.1.3, per change descriptions, not measured:
   repository in `~/.t3/projects/<title>`.
 - `scratch: true` gives the thread its own empty folder in `~/.t3/scratch/`.
 - Without `workspaceStrategy` the thread works in the project root. Strategy
-  `worktree` creates a separate worktree; uncommitted edits aren't copied
-  (per the tool description).
+  `worktree` creates a separate worktree; uncommitted edits aren't copied.
+  Measured 2026-10-30 on ten Codex threads: `{"type": "worktree", "baseRef":
+  "<local branch>", "branch": "<new branch>", "startFromOrigin": false}` checks
+  out the new branch from the local ref in
+  `~/.t3/worktrees/<project>/<branch with / as ->`. Ignored files such as
+  `node_modules` are absent; per the tool schema, a project script with
+  `runOnWorktreeCreate` (`t3_project_update`, `scripts`) prepares each new
+  worktree.
 - Per the docs, T3 Code marks a thread settled after three idle days or a
   merged pull request. It leaves the normal `t3_thread_list` and is found
   with `settled: true`. Cleanup may delete such a thread's worktree; it keeps
@@ -473,7 +479,7 @@ of `agy -p /usage`.
 
 ## Not measured
 
-The `approval-required` level, attachments, the `worktree` strategy, PDF in a
+The `approval-required` level, attachments, PDF in a
 Gemini thread, creating a schedule, watching a pull request, thread branches,
 `mode: "restart"` of `t3_thread_send`, switching provider in a thread,
 continuing after a limit. For Grok: a mid-turn correction, shell outside the
