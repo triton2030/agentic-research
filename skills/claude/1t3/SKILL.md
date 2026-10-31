@@ -162,8 +162,12 @@ files, pass `scratch: true` instead.
   [{"id": "reasoning_effort", "value": "high"}]}` — the effort option has a
   different name than for Codex and Muse.
 - Codex: `{"instanceId": "codex", "model": "gpt-6.1-sol", "options":
-  [{"id": "reasoningEffort", "value": "medium"}]}`; from Claude, `1codex`
-  picks the tier. Always set effort: T3 Code gives sol `low` by default.
+  [{"id": "reasoningEffort", "value": "medium"}, {"id": "serviceTier",
+  "value": "default"}]}`; from Claude, `1codex` picks the tier. Always set
+  effort: T3 Code gives sol `low` by default. Always set `serviceTier` to
+  `default` (Standard in the app): T3 Code defaults Codex to `priority` (Fast,
+  about twice the speed at higher usage), and the owner does not want to pay
+  for it (31.10.2026). Changing it on a running thread interrupted the turn.
 - `title`: `<agent> <model>/<effort> · <role> · <gist>`, the gist in a few
   words without paths: the title is how the owner sees where his quota went.
 - Always set `runtimeMode`. Without it, since T3 Code 0.1.3 the thread gets
