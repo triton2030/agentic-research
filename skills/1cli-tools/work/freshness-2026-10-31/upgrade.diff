@@ -1,0 +1,41 @@
+diff --git a/skills/claude/1cli-tools/SKILL.md b/skills/claude/1cli-tools/SKILL.md
+index 7aa3a099..1415a858 100644
+--- a/skills/claude/1cli-tools/SKILL.md
++++ b/skills/claude/1cli-tools/SKILL.md
+@@ -39,16 +39,18 @@ description: >-
+ | диск и система | `ncdu -o- -x <папка>` — дерево размеров JSON; `duf --json`; `mo status --json` (Mole) — память, процессы, температуры; `mo analyze`, `mo uninstall` — приложение с остатками; `btop` |
+ | сервисы | `gh`, `vercel`, `supabase`, `firecrawl`, `ntn` — Notion, `rclone` — Google Drive (`gdrive`, `gdrive-ro`) по скилу `1google-drive-archive` |
+ | агенты | `claude`, `droid`, `agy` — Google Antigravity, `muse` — Muse Code; `codex` из PATH — npm; `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex` — отдельный движок, обновляется с приложением, его запускает мост Claude `experiments/codex-bridge` в мастерской agentic-research |
+-| скилы и токены | `qv-skill` — проверка пакета скила; `token-counter` — сейчас не запускается (ловушка `uv tool`) |
++| скилы и токены | `qv-skill` — проверка пакета скила; `token-counter` |
+ 
+ ## Тихие Ловушки
+ 
+ - **PATH.** Старые `/usr/local/bin/node` 22, npm 10 и Vercel 39 лежат рядом
+-  с active в `/opt/homebrew`; первым стоит `~/.local/bin/node`. Проверяй
++  с active в `/opt/homebrew`; первым стоит `~/.local/bin/node` — отдельная
++  сборка nodejs.org, Homebrew её не обновляет. Проверяй
+   `which -a` и `realpath`. Проектный pin (`engines`, `.nvmrc`) сильнее
+   глобального и сам runtime не переключает.
+ - **Локальные сборки.** `md-tools` (uv editable), `qv-skill`, `plugin-eval`
+-  не заменяй одноимёнными пакетами из registry.
++  не заменяй одноимёнными пакетами из registry. `graphify` закреплён на версии,
++  под которую MAVO подключил индекс и Git-хуки: `@latest` — только с MAVO.
+ - **Скрипты зависимостей.** npm 12 и pnpm 11+ блокируют install-скрипты
+   зависимостей, а install завершается успехом. npm:
+   `npm approve-scripts --allow-scripts-pending` покажет заблокированное
+@@ -69,10 +71,10 @@ description: >-
+   забывает прежние `--with`: возьми их из `~/.local/share/uv/tools/NAME/uv-receipt.toml`.
+   `uv tool audit` без lockfile падает; без переустановки окружение проверяет
+   `pip-audit --path <site-packages окружения>`.
+-- **DuckDB** печатает таблицей только 40 строк (`(40 shown)`); все данные —
+-  `-csv` или `-json`. В 2.0, которую предлагает Homebrew, `~` и `!~` ищут
+-  частичное совпадение вместо полного — старые запросы молча меняют результат;
+-  в сессии агента вывод — Markdown до 1000 строк (по документации) →
++- **DuckDB 2.0** в сессии агента (задан `AI_AGENT`) печатает Markdown:
++  из длинной выдачи — первые и последние 20 строк, ячейка — до ~500 знаков.
++  Все данные — `-csv` или `-json`. `~` и `!~` теперь ищут частичное
++  совпадение — старые запросы молча меняют результат →
+   [миграция](https://duckdb.org/docs/2.0/operations_manual/migration.html).
+ - **Глобальный `tsc` 7** вне проекта: `strict`, `target es2025`,
+   `esModuleInterop` включены по умолчанию.
