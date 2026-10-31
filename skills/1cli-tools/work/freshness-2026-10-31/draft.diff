@@ -1,0 +1,401 @@
+diff --git a/skills/claude/1cli-tools/SKILL.md b/skills/claude/1cli-tools/SKILL.md
+index 1c176ed6..bf94d341 100644
+--- a/skills/claude/1cli-tools/SKILL.md
++++ b/skills/claude/1cli-tools/SKILL.md
+@@ -3,7 +3,7 @@ name: 1cli-tools
+ description: >-
+   Use before writing a helper script or choosing a CLI for data, YAML, text
+   edits, lint, security, media, browser, disk-space or system-health work;
+-  before npm install/ci, global
++  before npm or pnpm install/ci, global
+   tsc, agent-browser, vercel, gh agent-task/skill, uv tool or ffmpeg; and when
+   an install succeeds but a package fails. Lists what is installed on this Mac
+   and capabilities newer than model memory. Markdown corpus search belongs to
+@@ -20,8 +20,8 @@ description: >-
+ 
+ Перечень сверен 2026-09-26; Graphify — 2026-10-02; PostgreSQL, `caffeinate`
+ и трасса Playwright — 2026-10-10; диск и здоровье системы — 2026-10-18;
+-наличие всех строк, речь, терминал и агенты — 2026-10-21; runtime, фото
+-и Codex — 2026-10-31.
++наличие всех строк, речь, терминал и агенты — 2026-10-21; runtime, фото,
++Codex, справки и ловушки — 2026-10-31.
+ Mac — arm64; active Node 26.12.1, npm 12.2.1, pnpm 12.15.0, Python 3.15.0 —
+ установленные версии, не рекомендация обновления.
+ Перед использованием — `command -v TOOL`.
+@@ -35,22 +35,22 @@ Mac — arm64; active Node 26.12.1, npm 12.2.1, pnpm 12.15.0, Python 3.15.0 —
+ | структура кода | `ast-grep` — поиск и переписывание по AST |
+ | связи кода и последствия изменений | `graphify` 0.9.73 — локальный граф кода; `query` — поиск связей, `affected` — затронутые узлы |
+ | Markdown | `md` (md-tools), `rumdl`, `markdownlint-cli2`, `mdq`, `lychee` — ссылки |
+-| JS/TS | `pnpm`, `biome`, `eslint`, `prettier`, `stylelint`, `tsc` 7, `vitest` 5, `knip`, `dependency-cruiser`, `publint`, `attw`, `syncpack`, `changeset` — версии и changelog пакетов |
++| JS/TS | `pnpm`, `biome`, `eslint`, `prettier`, `stylelint`, `tsc` 7, `vitest` 5, `knip`, `dependency-cruiser`, `publint`, `attw`, `syncpack`, `changeset` — версии и changelog пакетов; `bun` 1.4 — `bun file.ts` выполняет TS целиком, `bun check` — проверка типов без сборки |
+ | OpenAPI | `redocly` — `lint`, `bundle`, `build-docs` |
+ | Python | `ruff`, `pyright`, `mypy`, `pytest`, `coverage`, `vulture`, `deptry`, `xenon` |
+ | shell и CI | `shellcheck`, `shfmt`, `actionlint`, `pre-commit`, `just`, `timeout` и `gtimeout` (coreutils); `caffeinate -d -i <команда>` — Mac не уснёт и не заблокирует экран, пока идёт долгий прогон |
+ | терминал и git | `tmux`, `watch` — повтор команды, `tree` — дерево папок, `direnv exec <папка> <команда>` — команда с окружением `.envrc`, `git-lfs` — большие файлы в git |
+ | безопасность | `semgrep`, `gitleaks`, `trufflehog`, `trivy`, `osv-scanner`, `bandit`, `pip-audit` |
+-| браузер и UI | `agent-browser`, `playwright`; нестабильный браузерный прогон — трасса Playwright при сбое: `tracing.start` и `stopChunk`, разбор — `playwright show-trace` |
++| браузер и UI | `agent-browser`, `playwright`; `agent-browser read <url>` — страница как Markdown, сам ищет `.md` и `llms.txt`; нестабильный браузерный прогон — трасса Playwright при сбое: `tracing.start` и `stopChunk`, разбор — `playwright show-trace` |
+ | медиа и документы | `ffmpeg`, `fpcalc`, `pdftotext`, `soffice` |
+ | речь в текст | `whisper-cli` 1.9 — всегда с `-m ~/.cache/whisper.cpp/ggml-large-v3-turbo-q5_0.bin -l <язык>` (`auto` — автоопределение): без них он ищет несуществующую `models/ggml-base.en.bin` и слушает по-английски; VAD — `--vad -vm ~/.cache/whisper.cpp/ggml-silero-v6.2.0.bin` |
+ | фото и изображения | `cwebp` и `dwebp` 1.6 — WebP; numpy 2.5, Pillow 13.0, pillow-heif 1.8 — HEIC, OpenCV 5.0, scipy 1.18, scikit-image 0.27rc1 (для 3.15 есть только rc) — в user site-packages Python 3.15: `python3 -I` их не видит, `python3 -P` видит и тоже не берёт модули из текущей папки; `swiftc` с macOS Vision — OCR и вырезание фигуры; собирай `swiftc -O`: интерпретатор `swift` на скрипте с Vision не уложился в 2 минуты; ImageMagick нет |
+ | диск: что занимает место | `ncdu` 2.9 — `ncdu -o- -x <папка>` выдаёт дерево размеров JSON-ом; `duf --json` — свободное место томов; `mo analyze` (Mole) — интерактивно |
+ | здоровье системы | `mo status --json` (Mole 1.62) — снимок: память и своп, топ процессов, температуры, размер Корзины; `btop` — интерактивный монитор; Stats — монитор владельца в строке меню |
+ | чистка Mac | Mole: `mo installer`, `mo clean`, `mo purge` — сборки проектов, `mo uninstall` — приложение с остатками; все интерактивные, первый запуск — `--dry-run` |
+-| сервисы | `gh`, `vercel`, `supabase`, `firecrawl`, `ntn` — Notion, `logseq` — графы Logseq.app |
++| сервисы | `gh`, `vercel`, `supabase`, `firecrawl`, `ntn` — Notion, `rclone` — Google Drive (`gdrive`, `gdrive-ro`), маршрут — скил `1google-drive-archive` |
+ | модели и агенты | `claude`, `droid`, `agy` — Google Antigravity CLI, `muse` — Muse Code от Meta |
+-| Codex | `codex` из PATH — npm `@openai/codex` 0.166.0; `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex` — отдельный движок 0.166.0-alpha.5.1, обновляется с приложением, его запускает мост Claude `1codex` |
++| Codex | `codex` из PATH — npm `@openai/codex` 0.166.0; `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex` — отдельный движок 0.166.0-alpha.5.1, обновляется с приложением, его запускает мост Claude `experiments/codex-bridge` в мастерской agentic-research |
+ | токены и скилы | `token-counter`, `qv-skill` — проверка пакета скила |
+ 
+ Нужного нет — сравни установку через `brew`, `npm -g` или `uv tool` со своим
+@@ -71,8 +71,22 @@ Mac — arm64; active Node 26.12.1, npm 12.2.1, pnpm 12.15.0, Python 3.15.0 —
+   Codex. Не заменяй их одноимёнными пакетами из публичного registry.
+ - Успешный `npm install` не доказывает, что install-скрипты зависимостей
+   выполнены: npm 12 блокирует их по умолчанию → [npm 12](references/npm-12.md).
++- pnpm 11+ тоже блокирует скрипты сборки (`pnpm ignored-builds`,
++  `pnpm approve-builds`), не ставит пакет моложе суток и берёт настройки только
++  из `pnpm-workspace.yaml`: прочие ключи `.npmrc` и поле `pnpm`
++  в `package.json` молча игнорируются → [pnpm 11](https://github.com/pnpm/pnpm/releases/tag/v11.0.0).
+ - `brew upgrade node` может откатить глобальный npm до комплектного →
+   [обновление](references/runtime-update.md).
++- Node 26 запускает `.ts`, только стирая типы: `enum` и `namespace` падают
++  с SyntaxError. Такой TS запускай `bun file.ts`.
++- Python 3.15: `strptime` с `%d` без года бросает `ValueError`; прочие
++  удаления — [What's New 3.15](https://docs.python.org/3.15/whatsnew/3.15.html).
++- Окружение `uv tool` на Python из Homebrew ломается со сменой его
++  minor-версии (`environment not found`), а `--reinstall` забывает прежние
++  `--with` → [пересборка](references/uv-tool-rebuild.md).
++- DuckDB 2.0 (Homebrew уже предлагает) в сессии агента печатает Markdown-таблицу,
++  обрезанную до 1000 строк; полные данные — `-csv` или `-json` →
++  [миграция](https://duckdb.org/docs/2.0/operations_manual/migration.html).
+ - Оболочка инструмента Bash здесь — bash 5, а не zsh: `setopt` и модификаторы
+   вроде `${f:t}` молча не работают, а глоб без совпадений остаётся строкой.
+   Проверка совпадения — `compgen -G '<шаблон>'`; пути с пробелами —
+@@ -93,15 +107,16 @@ Mac — arm64; active Node 26.12.1, npm 12.2.1, pnpm 12.15.0, Python 3.15.0 —
+ |---|---|
+ | выбрать workflow в `agent-browser` | [version-matched bundled skills](references/agent-browser-skills.md) |
+ | выбрать browser evidence/diagnostic | [встроенные diagnostics](references/agent-browser-diagnostics.md) |
+-| искать структуру или переписывать AST | [`ast-grep` 0.45](references/ast-grep.md) |
++| искать структуру или переписывать AST | [`ast-grep` 0.51](references/ast-grep.md) |
+ | npm install пропустил lifecycle script | [npm 12 allowScripts](references/npm-12.md) |
+ | проверить vulnerabilities изолированного Python CLI | [`uv tool audit`](references/uv-tool-audit.md) |
+ | пересобрать environment Python CLI | [`uv tool install --reinstall`](references/uv-tool-rebuild.md) |
+ | запустить глобальный TypeScript 7 | [новые compiler defaults](references/typescript-7.md) |
+ | работать с большим Markdown corpus | [локальный md-tools](references/markdown-knowledge.md) |
++| прочитать файл чужого репо, приложить картинку к PR, открыть PR в worktree | [новое в `gh`](references/github-repo-pr.md) |
+ | работать с GitHub agent session | [`gh agent-task`](references/github-agent-task.md) |
+ | искать/обновлять GitHub agent skill | [`gh skill`](references/github-skills.md) |
+-| выбрать Vercel agent/platform route | [новые команды Vercel 60](references/vercel-agent-platform.md) |
++| выбрать Vercel agent/platform route | [новые команды Vercel 65](references/vercel-agent-platform.md) |
+ | выбрать codec в локальном FFmpeg | [возможности active build](references/ffmpeg-build.md) |
+ | обновить конфликтующие active CLI | [owner и совместный smoke](references/runtime-update.md) |
+ 
+@@ -112,3 +127,11 @@ Mac — arm64; active Node 26.12.1, npm 12.2.1, pnpm 12.15.0, Python 3.15.0 —
+ 2. Используй capability, если она меняет ход задачи. Discovery не разрешает
+    mutation или network.
+ 3. Верни `TOOL VERSION · capability → changed action` либо `no relevant delta`.
++
++## Нашёл Расхождение
++
++Скил держится свежим находками агентов. Инструмент сломался, обновился, повёл
++себя не так, как здесь написано, или ты наткнулся на ловушку, которой здесь
++нет, — в итоге работы предложи владельцу правку скила: что увидел и какой
++командой это проверить. Сам скил не правь: правка глобальная и идёт через
++проверку.
+diff --git a/skills/claude/1cli-tools/references/agent-browser-diagnostics.md b/skills/claude/1cli-tools/references/agent-browser-diagnostics.md
+index ade69953..a5a09df2 100644
+--- a/skills/claude/1cli-tools/references/agent-browser-diagnostics.md
++++ b/skills/claude/1cli-tools/references/agent-browser-diagnostics.md
+@@ -1,11 +1,11 @@
+ ---
+-description: "Built-in evidence and diagnostics active agent-browser 0.38.1."
++description: "Built-in evidence and diagnostics active agent-browser 0.39.1."
+ ---
+ 
+ # agent-browser: Diagnostics
+ 
+-Момент: для browser claim выбирается вид evidence. Сверено 2026-09-24 с active
+-`agent-browser 0.38.1`; точные options быстрее всего меняются в top-level help.
++Момент: для browser claim выбирается вид evidence. Сверено 2026-10-31 с active
++`agent-browser 0.39.1`; точные options быстрее всего меняются в top-level help.
+ 
+ ## Дельта
+ 
+@@ -13,11 +13,11 @@ description: "Built-in evidence and diagnostics active agent-browser 0.38.1."
+ |---|---|
+ | accessibility/WCAG | `a11y [url] --json` |
+ | Core Web Vitals и hydration | `vitals [url] --json` |
+-| React tree, state, rerenders, Suspense | `react tree|inspect|renders|suspense` после `open --enable react-devtools` |
++| React tree, state, rerenders, Suspense | `react tree`, `inspect`, `renders`, `suspense` после `open --enable react-devtools` |
+ | structural/visual regression | `diff snapshot`, `diff screenshot --baseline`, `diff url` |
+ | повторное чтение меняющейся страницы | `snapshot --delta`; `--full` обновляет полный baseline |
+ | повторный screenshot | `screenshot --if-changed`; `--threshold <0-1>` допускает малые отличия |
+-| network trace | `network har start|stop` |
++| network trace | `network har start`, `stop` |
+ | browser performance/debug | `trace`, `profiler`, `record` |
+ 
+ Канонический владелец exact syntax:
+@@ -33,4 +33,4 @@ Refs сохраняются для выживших DOM-элементов; на
+ делает старый ref недействительным.
+ 
+ Источник новшеств: [agent-browser 0.38.0](https://github.com/vercel-labs/agent-browser/releases/tag/v0.38.0),
+-сверено с локальной справкой 0.38.1.
++сверено с локальной справкой 0.39.1.
+diff --git a/skills/claude/1cli-tools/references/agent-browser-skills.md b/skills/claude/1cli-tools/references/agent-browser-skills.md
+index 4d769350..a8fe15d5 100644
+--- a/skills/claude/1cli-tools/references/agent-browser-skills.md
++++ b/skills/claude/1cli-tools/references/agent-browser-skills.md
+@@ -1,11 +1,11 @@
+ ---
+-description: "Version-matched skills active agent-browser 0.38.1."
++description: "Version-matched skills active agent-browser 0.39.1."
+ ---
+ 
+ # agent-browser: Bundled Skills
+ 
+ Момент: выбирается workflow до первой команды `agent-browser`. Сверено
+-2026-09-24 с active `agent-browser 0.38.1`; быстрее всего меняется список skills.
++2026-10-31 с active `agent-browser 0.39.1`; быстрее всего меняется список skills.
+ 
+ ## Дельта
+ 
+diff --git a/skills/claude/1cli-tools/references/ast-grep.md b/skills/claude/1cli-tools/references/ast-grep.md
+index f11354aa..2532b8ee 100644
+--- a/skills/claude/1cli-tools/references/ast-grep.md
++++ b/skills/claude/1cli-tools/references/ast-grep.md
+@@ -1,10 +1,10 @@
+ ---
+-description: "Canonical search, scan and outline routes in active ast-grep 0.45.3."
++description: "Canonical search, scan and outline routes in active ast-grep 0.51.0."
+ ---
+ 
+-# ast-grep 0.45.3
++# ast-grep 0.51.0
+ 
+-Момент: выбирается structural code search/rewrite. Сверено 2026-09-24; быстрее
++Момент: выбирается structural code search/rewrite. Сверено 2026-10-31; быстрее
+ всего меняются subcommands и outline views.
+ 
+ ## Дельта
+@@ -21,3 +21,10 @@ description: "Canonical search, scan and outline routes in active ast-grep 0.45.
+ ast-grep outline PATH --items exports --view signatures --json=compact
+ ast-grep COMMAND --help
+ ```
++
++## Ловушка С 0.50
++
++Нативные custom languages из `sgconfig.yml` по умолчанию не загружаются,
++и ошибки нет: файлы этих языков молча выпадают из поиска. Включить на вызов —
++`--custom-languages allow`, запомнить проект — `--custom-languages trust`.
++Источник — [релиз 0.50.0](https://github.com/ast-grep/ast-grep/releases/tag/0.50.0).
+diff --git a/skills/claude/1cli-tools/references/ffmpeg-build.md b/skills/claude/1cli-tools/references/ffmpeg-build.md
+index 6638207e..93e22cd8 100644
+--- a/skills/claude/1cli-tools/references/ffmpeg-build.md
++++ b/skills/claude/1cli-tools/references/ffmpeg-build.md
+@@ -4,7 +4,7 @@ description: "Hardware and quality capabilities compiled into active FFmpeg 9.0.
+ 
+ # FFmpeg 9: Active Build
+ 
+-Момент: выбирается codec/quality route на этом Mac. Сверено 2026-09-24 с active
++Момент: выбирается codec/quality route на этом Mac. Сверено 2026-10-31 с active
+ Homebrew FFmpeg 9.0.2; build options меняются при reinstall/upgrade.
+ 
+ ## Локальная Дельта
+diff --git a/skills/claude/1cli-tools/references/github-agent-task.md b/skills/claude/1cli-tools/references/github-agent-task.md
+index c57b2d05..495142fd 100644
+--- a/skills/claude/1cli-tools/references/github-agent-task.md
++++ b/skills/claude/1cli-tools/references/github-agent-task.md
+@@ -1,11 +1,11 @@
+ ---
+-description: "Preview GitHub agent sessions in active gh 2.101.0."
++description: "Preview GitHub agent sessions in active gh 2.103.0."
+ ---
+ 
+ # GitHub CLI: agent-task
+ 
+-Момент: создаётся или читается GitHub agent session. Сверено 2026-09-24 с
+-active `gh 2.101.0`; family помечена preview и меняется быстро.
++Момент: создаётся или читается GitHub agent session. Сверено 2026-10-31 с
++active `gh 2.103.0`; family помечена preview и меняется быстро.
+ 
+ ## Дельта
+ 
+diff --git a/skills/claude/1cli-tools/references/github-skills.md b/skills/claude/1cli-tools/references/github-skills.md
+index ea0d596e..91d0c8ad 100644
+--- a/skills/claude/1cli-tools/references/github-skills.md
++++ b/skills/claude/1cli-tools/references/github-skills.md
+@@ -1,11 +1,11 @@
+ ---
+-description: "Preview agent-skill lifecycle in active gh 2.101.0."
++description: "Preview agent-skill lifecycle in active gh 2.103.0."
+ ---
+ 
+ # GitHub CLI: skill
+ 
+ Момент: agent skill ищется, preview-ится, обновляется или готовится к publish.
+-Сверено 2026-09-24 с active `gh 2.101.0`; family помечена preview и меняется
++Сверено 2026-10-31 с active `gh 2.103.0`; family помечена preview и меняется
+ быстро.
+ 
+ ## Дельта
+diff --git a/skills/claude/1cli-tools/references/npm-12.md b/skills/claude/1cli-tools/references/npm-12.md
+index 4b21b88b..93db8240 100644
+--- a/skills/claude/1cli-tools/references/npm-12.md
++++ b/skills/claude/1cli-tools/references/npm-12.md
+@@ -1,11 +1,11 @@
+ ---
+-description: "Deny-by-default dependency lifecycle scripts in active npm 12.1.0."
++description: "Deny-by-default dependency lifecycle scripts in active npm 12.2.1."
+ ---
+ 
+ # npm 12: allowScripts
+ 
+ Момент: install завершился, но package с native asset/generator не работает или
+-npm перечислил skipped lifecycle scripts. Сверено 2026-09-24 с npm 12.1.0;
++npm перечислил skipped lifecycle scripts. Сверено 2026-10-31 с npm 12.2.1;
+ быстрее всего меняется `allowScripts` policy.
+ 
+ ## Дельта
+diff --git a/skills/claude/1cli-tools/references/typescript-7.md b/skills/claude/1cli-tools/references/typescript-7.md
+index fc2f8fa7..65afbe5f 100644
+--- a/skills/claude/1cli-tools/references/typescript-7.md
++++ b/skills/claude/1cli-tools/references/typescript-7.md
+@@ -5,7 +5,7 @@ description: "Active global TypeScript 7.0.2 compiler defaults."
+ # TypeScript 7 Defaults
+ 
+ Момент: глобальный `tsc` запускается вне проекта с собственным local TypeScript
+-и `tsconfig`. Сверено 2026-09-24 с active TypeScript 7.0.2; быстрее всего
++и `tsconfig`. Сверено 2026-10-31 с active TypeScript 7.0.2; быстрее всего
+ меняются compiler defaults.
+ 
+ ## Дельта
+diff --git a/skills/claude/1cli-tools/references/uv-tool-audit.md b/skills/claude/1cli-tools/references/uv-tool-audit.md
+index b1194814..ad1c945f 100644
+--- a/skills/claude/1cli-tools/references/uv-tool-audit.md
++++ b/skills/claude/1cli-tools/references/uv-tool-audit.md
+@@ -1,22 +1,30 @@
+ ---
+-description: "Vulnerability audit of isolated CLI environments in active uv 0.12.19."
++description: "Vulnerability audit of isolated CLI environments with uv 0.13.5: needs tool lockfiles."
+ ---
+ 
+ # uv tool audit
+ 
+ Момент: проверяются vulnerabilities зависимостей изолированного Python CLI.
+-Сверено 2026-09-25 с uv 0.12.19; быстрее всего меняются audit service и formats.
++Сверено 2026-10-31 с uv 0.13.5; команда экспериментальная и меняется быстро.
+ 
+ ## Дельта
+ 
+-`uv tool audit` проверяет отдельные tool environments через OSV и имеет text,
+-JSON и SARIF output:
++`uv tool audit` проверяет отдельное tool environment через OSV, но только
++если оно установлено с lockfile. Нынешние окружения на этом Mac lockfile не
++имеют: `uv tool audit ruff` завершается кодом 2 с `does not have a lockfile`.
++
++Чтобы окружение стало проверяемым, его переустанавливают с lockfile — это
++мутация, и прежние `--with` надо передать заново
++([пересборка](uv-tool-rebuild.md)):
+ 
+ ```bash
++uv tool install --reinstall --preview-features tool-install-locks TOOL
+ uv tool audit TOOL --output-format json
+-uv tool audit --all --output-format sarif
+ uv tool audit --help
+ ```
+ 
+-Это отдельная поверхность от project dependency audit: `<NAME>...` выбирает
+-environments, установленные владельцем `uv tool`.
++Без переустановки окружение проверяет `pip-audit` из перечня:
++
++```bash
++pip-audit --path ~/.local/share/uv/tools/TOOL/lib/pythonX.Y/site-packages
++```
+diff --git a/skills/claude/1cli-tools/references/uv-tool-rebuild.md b/skills/claude/1cli-tools/references/uv-tool-rebuild.md
+index 2eef2f42..bc5c3a50 100644
+--- a/skills/claude/1cli-tools/references/uv-tool-rebuild.md
++++ b/skills/claude/1cli-tools/references/uv-tool-rebuild.md
+@@ -1,21 +1,22 @@
+ ---
+-description: "Owner-preserving rebuild of an isolated CLI environment in active uv 0.12.19."
++description: "Owner-preserving rebuild of an isolated CLI environment in active uv 0.13.5."
+ ---
+ 
+ # uv tool Rebuild
+ 
+-Момент: изолированный Python CLI нужно пересобрать с изменённой dependency или
+-source. Сверено 2026-09-25 с uv 0.12.19; быстрее всего меняются install options.
++Момент: изолированный Python CLI нужно пересобрать — сломался его Python,
++изменилась dependency или source. Сверено 2026-10-31 с uv 0.13.5.
+ 
+ ## Дельта
+ 
+-Каждый `uv tool` имеет собственный environment и receipt. Команда
+-`uv tool install --reinstall` пересобирает его владельцем uv и принимает
+-dependency через `--with`, source и `--editable`:
++Каждый `uv tool` имеет собственный environment и receipt `uv-receipt.toml`.
++`uv tool install --reinstall` пересобирает его владельцем uv, но только
++из аргументов этой команды: прежние `--with` из receipt выпадают (проверено
++2026-10-31 на одноразовом окружении). Перед пересборкой прочитай receipt:
+ 
+ ```bash
+-uv tool list --show-paths
+-uv tool install --help
++uv tool list --show-paths --show-with
++cat ~/.local/share/uv/tools/TOOL/uv-receipt.toml
+ uv tool install --reinstall --with 'PACKAGE>=FIX' TOOL_OR_PATH
+ ```
+ 
+diff --git a/skills/claude/1cli-tools/references/vercel-agent-platform.md b/skills/claude/1cli-tools/references/vercel-agent-platform.md
+index c5c01fc9..1ad133ec 100644
+--- a/skills/claude/1cli-tools/references/vercel-agent-platform.md
++++ b/skills/claude/1cli-tools/references/vercel-agent-platform.md
+@@ -1,17 +1,19 @@
+ ---
+-description: "Agent, skills, sandbox and observability routes in Vercel CLI 60.0.1."
++description: "Agent, CI, sandbox and observability routes in native Vercel CLI 65.0.0."
+ ---
+ 
+-# Vercel CLI 60: Agent Platform
++# Vercel CLI 65: Agent Platform
+ 
+ Момент: до ручного API/helper-а выбирается Vercel agent/platform route. Сверено
+-2026-09-25 с active Vercel CLI 60.0.1; beta/preview families меняются быстро.
++2026-10-31 с active Vercel CLI 65.0.0; beta/preview families меняются быстро.
+ 
+ ## Дельта
+ 
+ | Старый вероятный путь | Active route |
+ |---|---|
+-| вручную собирать Vercel guidance для агента | `vercel agent` |
++| писать AGENTS.md для Vercel-проекта вручную | `vercel agent init` — пишет файл |
++| опрашивать CI через API или браузер | `vercel ci list`, `inspect`, `logs`, `grep` |
++| вручную проверять URL после деплоя | `vercel deploy --verify` |
+ | искать project-relevant agent skill снаружи | `vercel skills [query] --json` |
+ | вручную настраивать Vercel MCP | `vercel mcp` |
+ | поднимать свой isolated runner | `vercel sandbox` |
+@@ -19,8 +21,21 @@ description: "Agent, skills, sandbox and observability routes in Vercel CLI 60.0
+ | собирать deployment tracing вручную | `vercel traces`, `vercel metrics` |
+ | писать auth wrapper к Vercel API | `vercel api ENDPOINT` |
+ 
+-При обнаружении агента CLI по умолчанию non-interactive. Точный contract и
+-mutation surface каждой семьи принадлежат live help:
++## Ловушки
++
++- С 62.1 на macOS работает нативный бинарь: `vercel version` пишет
++  `Runtime: native binary`. Обновляется он через npm global вместе с пакетом
++  `vercel`.
++- `vercel logs` с 64.0 по умолчанию выдаёт runtime-записи; CDN-запросы —
++  `vercel logs requests`.
++- `vercel setup` ставит плагин Vercel в Claude Code и Codex и пишет скил
++  `vercel-cli` в `~/.agents/skills` мимо `npx skills` и его lock-файла.
++  Это установка стороннего пакета — сначала согласуй с владельцем.
++
++При обнаружении агента CLI по умолчанию non-interactive. Точный contract
++и mutation surface каждой семьи — в live help; история версий — в
++[changelog пакета](https://www.npmjs.com/package/vercel?activeTab=versions):
++GitHub releases репозитория `vercel/vercel` отстают.
+ 
+ ```bash
+ vercel --help

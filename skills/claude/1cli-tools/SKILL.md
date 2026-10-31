@@ -3,112 +3,108 @@ name: 1cli-tools
 description: >-
   Use before writing a helper script or choosing a CLI for data, YAML, text
   edits, lint, security, media, browser, disk-space or system-health work;
-  before npm install/ci, global
-  tsc, agent-browser, vercel, gh agent-task/skill, uv tool or ffmpeg; and when
-  an install succeeds but a package fails. Lists what is installed on this Mac
-  and capabilities newer than model memory. Markdown corpus search belongs to
-  1md-search.
+  before npm or pnpm install/ci, running .ts with node, global tsc,
+  agent-browser, vercel, gh, uv tool or ffmpeg; and when an install succeeds
+  but a package fails. Lists what is installed on this Mac and where familiar
+  commands silently break. Markdown corpus search belongs to 1md-search.
 ---
 
 # CLI На Этом Mac
 
-Память модели не знает, что установлено на этом Mac, и старее установленных
-версий. Готовый инструмент дешевле своего скрипта; знакомое имя не означает
-знакомые возможности.
+Твоя память не знает, что здесь установлено, и старее этих версий. Здесь —
+только то, чего не скажет `--help`: что есть, где привычное тихо ломается
+и что появилось после твоей памяти. Точный синтаксис — живой `--help`; он
+побеждает этот текст. Сверено 2026-10-31; перед использованием —
+`TOOL --version`: `command -v` не видит сломанную обёртку.
 
-## Что Уже Установлено
-
-Перечень сверен 2026-09-26; Graphify — 2026-10-02; PostgreSQL, `caffeinate`
-и трасса Playwright — 2026-10-10; диск и здоровье системы — 2026-10-18;
-наличие всех строк, речь, терминал и агенты — 2026-10-21; runtime, фото
-и Codex — 2026-10-31.
-Mac — arm64; active Node 26.12.1, npm 12.2.1, pnpm 12.15.0, Python 3.15.0 —
-установленные версии, не рекомендация обновления.
-Перед использованием — `command -v TOOL`.
+## Что Есть
 
 | Работа | Инструменты |
 |---|---|
-| данные: JSONL, CSV, JSON, SQLite, история сессий | `duckdb` — SQL прямо по файлам и glob, `jq`, `gron`, `sqlite3` 3.54 |
-| PostgreSQL 17 | `psql`, `pgbench` — нагрузка базы, `pg_dump` и `pg_restore` — копия и восстановление |
-| YAML, frontmatter Markdown | `yq --front-matter=extract` |
-| поиск и замена в тексте | `rg`, `fd`, `sd` — без различий BSD/GNU `sed` |
-| структура кода | `ast-grep` — поиск и переписывание по AST |
-| связи кода и последствия изменений | `graphify` 0.9.73 — локальный граф кода; `query` — поиск связей, `affected` — затронутые узлы |
-| Markdown | `md` (md-tools), `rumdl`, `markdownlint-cli2`, `mdq`, `lychee` — ссылки |
-| JS/TS | `pnpm`, `biome`, `eslint`, `prettier`, `stylelint`, `tsc` 7, `vitest` 5, `knip`, `dependency-cruiser`, `publint`, `attw`, `syncpack`, `changeset` — версии и changelog пакетов |
-| OpenAPI | `redocly` — `lint`, `bundle`, `build-docs` |
+| данные: JSONL, CSV, JSON, SQLite, история сессий | `duckdb` — SQL прямо по файлам и glob, `jq`, `gron`, `sqlite3` |
+| PostgreSQL 17 | `psql`, `pgbench`, `pg_dump`, `pg_restore` |
+| YAML, frontmatter | `yq --front-matter=extract` |
+| текст | `rg`, `fd`, `sd` — без различий BSD/GNU `sed` |
+| код | `ast-grep` — поиск и переписывание по AST, `ast-grep outline` — символы файла; `graphify` — локальный граф кода: `query`, `affected` |
+| Markdown | `md` (md-tools, свой: `orient`, `search`, `edit-context`, `impact` по корпусу; `md tools --json`), `rumdl`, `markdownlint-cli2`, `mdq`, `lychee` |
+| JS/TS | `pnpm`, `bun` — `bun file.ts` выполняет TS с `enum` и `namespace`, на которых `node file.ts` падает; `bun check` — типы без сборки; `biome`, `eslint`, `prettier`, `stylelint`, `tsc` 7, `vitest`, `knip`, `dependency-cruiser`, `publint`, `attw`, `syncpack`, `changeset`, `redocly` |
 | Python | `ruff`, `pyright`, `mypy`, `pytest`, `coverage`, `vulture`, `deptry`, `xenon` |
-| shell и CI | `shellcheck`, `shfmt`, `actionlint`, `pre-commit`, `just`, `timeout` и `gtimeout` (coreutils); `caffeinate -d -i <команда>` — Mac не уснёт и не заблокирует экран, пока идёт долгий прогон |
-| терминал и git | `tmux`, `watch` — повтор команды, `tree` — дерево папок, `direnv exec <папка> <команда>` — команда с окружением `.envrc`, `git-lfs` — большие файлы в git |
+| shell и CI | `shellcheck`, `shfmt`, `actionlint`, `pre-commit`, `just`, `timeout`; `caffeinate -d -i <команда>` — Mac не уснёт, пока идёт прогон |
+| терминал и git | `tmux`, `watch`, `tree`, `direnv exec <папка> <команда>`, `git-lfs` |
 | безопасность | `semgrep`, `gitleaks`, `trufflehog`, `trivy`, `osv-scanner`, `bandit`, `pip-audit` |
-| браузер и UI | `agent-browser`, `playwright`; нестабильный браузерный прогон — трасса Playwright при сбое: `tracing.start` и `stopChunk`, разбор — `playwright show-trace` |
-| медиа и документы | `ffmpeg`, `fpcalc`, `pdftotext`, `soffice` |
-| речь в текст | `whisper-cli` 1.9 — всегда с `-m ~/.cache/whisper.cpp/ggml-large-v3-turbo-q5_0.bin -l <язык>` (`auto` — автоопределение): без них он ищет несуществующую `models/ggml-base.en.bin` и слушает по-английски; VAD — `--vad -vm ~/.cache/whisper.cpp/ggml-silero-v6.2.0.bin` |
-| фото и изображения | `cwebp` и `dwebp` 1.6 — WebP; numpy 2.5, Pillow 13.0, pillow-heif 1.8 — HEIC, OpenCV 5.0, scipy 1.18, scikit-image 0.27rc1 (для 3.15 есть только rc) — в user site-packages Python 3.15: `python3 -I` их не видит, `python3 -P` видит и тоже не берёт модули из текущей папки; `swiftc` с macOS Vision — OCR и вырезание фигуры; собирай `swiftc -O`: интерпретатор `swift` на скрипте с Vision не уложился в 2 минуты; ImageMagick нет |
-| диск: что занимает место | `ncdu` 2.9 — `ncdu -o- -x <папка>` выдаёт дерево размеров JSON-ом; `duf --json` — свободное место томов; `mo analyze` (Mole) — интерактивно |
-| здоровье системы | `mo status --json` (Mole 1.62) — снимок: память и своп, топ процессов, температуры, размер Корзины; `btop` — интерактивный монитор; Stats — монитор владельца в строке меню |
-| чистка Mac | Mole: `mo installer`, `mo clean`, `mo purge` — сборки проектов, `mo uninstall` — приложение с остатками; все интерактивные, первый запуск — `--dry-run` |
-| сервисы | `gh`, `vercel`, `supabase`, `firecrawl`, `ntn` — Notion, `logseq` — графы Logseq.app |
-| модели и агенты | `claude`, `droid`, `agy` — Google Antigravity CLI, `muse` — Muse Code от Meta |
-| Codex | `codex` из PATH — npm `@openai/codex` 0.166.0; `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex` — отдельный движок 0.166.0-alpha.5.1, обновляется с приложением, его запускает мост Claude `1codex` |
-| токены и скилы | `token-counter`, `qv-skill` — проверка пакета скила |
-
-Нужного нет — сравни установку через `brew`, `npm -g` или `uv tool` со своим
-кодом.
+| браузер | `agent-browser` — `read <url>` отдаёт страницу Markdown-ом, сам ищет `llms.txt`; `skills list` — инструкции под эту версию; `a11y`, `vitals`, `react`, `diff`; `playwright` — при нестабильном прогоне трасса и `playwright show-trace` |
+| медиа и документы | `ffmpeg` (VideoToolbox, SVT-AV1, VMAF), `fpcalc`, `pdftotext`, `soffice` |
+| речь в текст | `whisper-cli` — всегда `-m ~/.cache/whisper.cpp/ggml-large-v3-turbo-q5_0.bin -l <язык>`, иначе ищет несуществующую модель и слушает по-английски; VAD — `--vad -vm ~/.cache/whisper.cpp/ggml-silero-v6.2.0.bin` |
+| фото | `cwebp`, `dwebp`; numpy, Pillow, pillow-heif, OpenCV, scipy, scikit-image — в user site Python 3.15: видны с `python3 -P`, не с `-I`; `swiftc -O` с macOS Vision — OCR и вырезание (интерпретатор `swift` не успевает); ImageMagick нет |
+| диск и система | `ncdu -o- -x <папка>` — дерево размеров JSON; `duf --json`; `mo status --json` (Mole) — память, процессы, температуры; `mo analyze`, `mo uninstall` — приложение с остатками; `btop` |
+| сервисы | `gh`, `vercel`, `supabase`, `firecrawl`, `ntn` — Notion, `rclone` — Google Drive (`gdrive`, `gdrive-ro`) по скилу `1google-drive-archive` |
+| агенты | `claude`, `droid`, `agy` — Google Antigravity, `muse` — Muse Code; `codex` из PATH — npm; `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex` — отдельный движок, обновляется с приложением, его запускает мост Claude `experiments/codex-bridge` в мастерской agentic-research |
+| скилы и токены | `qv-skill` — проверка пакета скила; `token-counter` — сейчас не запускается (ловушка `uv tool`) |
 
 ## Тихие Ловушки
 
-- В PATH есть старые `/usr/local/bin/node` 22.13.1, npm 10.9.2 и Vercel
-  39.4.2; active установки — в `/opt/homebrew`. Первым в PATH стоит
-  `~/.local/bin/node` — сборка из `~/.local/share/node` той же версии, что
-  в `/opt/homebrew`. Проверяй `which -a` и realpath.
-- Project pin сильнее global: `mavo-short2` фиксирует Node 26.6.0 и
-  `npm@11.16.0` (`engines.npm >=11 <12`); global npm 12.2.1 этому не
-  соответствует. `subfrost-app/.nvmrc` содержит Node 20. Файл pin сам не
-  переключает runtime.
-- `md-tools` установлен через uv editable из `~/Documents/My_projects/md-tools`;
-  `qv-skill` — локальный wrapper, а `plugin-eval` — ссылка на плагин в кеше
-  Codex. Не заменяй их одноимёнными пакетами из публичного registry.
-- Успешный `npm install` не доказывает, что install-скрипты зависимостей
-  выполнены: npm 12 блокирует их по умолчанию → [npm 12](references/npm-12.md).
-- `brew upgrade node` может откатить глобальный npm до комплектного →
-  [обновление](references/runtime-update.md).
-- Оболочка инструмента Bash здесь — bash 5, а не zsh: `setopt` и модификаторы
-  вроде `${f:t}` молча не работают, а глоб без совпадений остаётся строкой.
-  Проверка совпадения — `compgen -G '<шаблон>'`; пути с пробелами —
-  `-z | xargs -0`. Перед массовым `mv` или `rm` по условию выведи список.
-- `gdu` здесь — GNU `du` из coreutils, а не анализатор диска gdu; анализ места —
-  `ncdu`.
-- `mo clean`, `mo purge` и `mo installer` удаляют навсегда, мимо Корзины.
-  Кеши `~/.npm/_npx` и `~/.cache/uv` — место запуска MCP-серверов плагинов:
-  до их чистки проверь `pgrep -fl 'npx|uvx'`.
-- Абзац Markdown часто одна строка: `cut -c` молча прячет её конец, а
-  `rg -M 300 --max-columns-preview` помечает обрезанное.
-- `npx --no-install lychee` добавляет строки `npm notice`, и `tail -1` может
-  вернуть пустую строку — вызывай `lychee` напрямую.
+- **PATH.** Старые `/usr/local/bin/node` 22, npm 10 и Vercel 39 лежат рядом
+  с active в `/opt/homebrew`; первым стоит `~/.local/bin/node`. Проверяй
+  `which -a` и `realpath`. Проектный pin (`engines`, `.nvmrc`) сильнее
+  глобального и сам runtime не переключает.
+- **Локальные сборки.** `md-tools` (uv editable), `qv-skill`, `plugin-eval`
+  не заменяй одноимёнными пакетами из registry.
+- **Скрипты зависимостей.** npm 12 и pnpm 11+ блокируют install-скрипты
+  зависимостей, а install завершается успехом. npm:
+  `npm approve-scripts --allow-scripts-pending` покажет заблокированное
+  (пусто — причина другая), подробности — `npm help approve-scripts`.
+  pnpm: `pnpm ignored-builds`, затем `pnpm approve-builds PKG` (без аргумента
+  интерактивен, `--all` снимает защиту целиком).
+- **pnpm 11+.** Настройки — в `pnpm-workspace.yaml`: поле `pnpm`
+  в `package.json` и не-auth ключи `.npmrc` молча игнорируются; пакет моложе
+  суток не ставится → [релиз 11](https://github.com/pnpm/pnpm/releases/tag/v11.0.0).
+- **`brew upgrade node`** может вернуть комплектный npm поверх нового: после
+  него проверь `npm --version` и поставь свежий npm обратно.
+- **Конфликт версий.** Если две active версии конфликтуют, pin
+  проекта не требует старую и менеджеры предлагают обновить обе — обнови обе
+  одним проходом, затем повтори обе `--version` и упавшую команду; так решил
+  владелец.
+- **`uv tool`.** Окружение на Python из Homebrew ломается со сменой его
+  minor-версии (`environment not found`). `uv tool install NAME --reinstall`
+  забывает прежние `--with`: возьми их из `~/.local/share/uv/tools/NAME/uv-receipt.toml`.
+  `uv tool audit` без lockfile падает; без переустановки окружение проверяет
+  `pip-audit --path <site-packages окружения>`.
+- **DuckDB** печатает таблицей только 40 строк (`(40 shown)`); все данные —
+  `-csv` или `-json`. В 2.0, которую предлагает Homebrew, `~` и `!~` ищут
+  частичное совпадение вместо полного — старые запросы молча меняют результат;
+  в сессии агента вывод — Markdown до 1000 строк (по документации) →
+  [миграция](https://duckdb.org/docs/2.0/operations_manual/migration.html).
+- **Глобальный `tsc` 7** вне проекта: `strict`, `target es2025`,
+  `esModuleInterop` включены по умолчанию.
+- **ast-grep 0.50+** молча пропускает custom languages из `sgconfig.yml`:
+  `--custom-languages allow`.
+- **`vercel setup`** ставит плагин в агентов и скил в `~/.agents/skills`
+  мимо `npx skills` — согласуй с владельцем.
+- **Shell инструмента Bash — bash 5**, не zsh: `setopt` и `${f:t}` молча
+  не работают, пустой глоб остаётся строкой; проверка — `compgen -G`, пути
+  с пробелами — `-z | xargs -0`. Перед массовым `mv`/`rm` выведи список.
+- **`gdu`** — GNU `du` из coreutils; размеры — `ncdu`.
+- **Mole** (`mo clean`, `purge`, `installer`) удаляет мимо Корзины, первый
+  запуск — `--dry-run`. `~/.npm/_npx` и `~/.cache/uv` — место запуска
+  MCP-серверов: до чистки `pgrep -fl 'npx|uvx'`.
+- **`md search`** шлёт запрос и изменения корпуса во внешний embedding endpoint.
+- **Длинные строки.** Абзац Markdown — часто одна строка: `cut -c` прячет
+  конец, `rg -M 300 --max-columns-preview` помечает обрезанное.
+- **`lychee`** вызывай напрямую: через `npx` вывод засоряют `npm notice`.
 
-## Открой Один Reference В Текущий Момент
+## Новое После Твоей Памяти
 
-| Момент решения | Получить |
-|---|---|
-| выбрать workflow в `agent-browser` | [version-matched bundled skills](references/agent-browser-skills.md) |
-| выбрать browser evidence/diagnostic | [встроенные diagnostics](references/agent-browser-diagnostics.md) |
-| искать структуру или переписывать AST | [`ast-grep` 0.45](references/ast-grep.md) |
-| npm install пропустил lifecycle script | [npm 12 allowScripts](references/npm-12.md) |
-| проверить vulnerabilities изолированного Python CLI | [`uv tool audit`](references/uv-tool-audit.md) |
-| пересобрать environment Python CLI | [`uv tool install --reinstall`](references/uv-tool-rebuild.md) |
-| запустить глобальный TypeScript 7 | [новые compiler defaults](references/typescript-7.md) |
-| работать с большим Markdown corpus | [локальный md-tools](references/markdown-knowledge.md) |
-| работать с GitHub agent session | [`gh agent-task`](references/github-agent-task.md) |
-| искать/обновлять GitHub agent skill | [`gh skill`](references/github-skills.md) |
-| выбрать Vercel agent/platform route | [новые команды Vercel 60](references/vercel-agent-platform.md) |
-| выбрать codec в локальном FFmpeg | [возможности active build](references/ffmpeg-build.md) |
-| обновить конфликтующие active CLI | [owner и совместный smoke](references/runtime-update.md) |
+| Инструмент | Что | Где подробности |
+|---|---|---|
+| `gh` | `repo read-file`/`read-dir` без клона, `--attach 'file.png#alt'` в issue/PR, `pr checkout --worktree`, `skill`, `agent-task` | `gh <cmd> --help`, [releases](https://github.com/cli/cli/releases) |
+| `vercel` 65 | `ci` — прогоны и логи CI, `deploy --verify`, `agent init` — AGENTS.md, `api`, `sandbox`, `traces`; `logs` по умолчанию runtime, CDN — `logs requests` | `vercel help <cmd>` |
+| Python 3.15 | UTF-8 по умолчанию — `encoding=` в `open()` не обязателен; `lazy import` | [What's New](https://docs.python.org/3.15/whatsnew/3.15.html) |
 
-## Вернись В Задачу
+## Нашёл Расхождение
 
-1. Сверь active version с live-help командой из reference; при drift live help
-   побеждает. Project-local owner/config сильнее global.
-2. Используй capability, если она меняет ход задачи. Discovery не разрешает
-   mutation или network.
-3. Верни `TOOL VERSION · capability → changed action` либо `no relevant delta`.
+Скил держится свежим находками агентов. Инструмент сломался, обновился,
+повёл себя не так, как здесь написано, или нашлась ловушка, которой здесь
+нет, — по ходу любой работы добавь в итог отдельную строку-предложение
+правки этого скила: что увидел и какой командой проверить. Субагент передаёт
+её родителю. Без поручения владельца скил сам не правь: правка глобальная
+и идёт через проверку.
