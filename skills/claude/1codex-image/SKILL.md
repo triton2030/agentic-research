@@ -12,7 +12,7 @@ description: >-
 
 Raster images here are made by OpenAI GPT Image with the owner's API key; it
 is his main image route. Recraft only when he names it (`1recraft`), Codex
-only when he names it (`1codex`).
+only when he names it (a Codex thread by `1t3`).
 
 A bad image almost always comes from the prompt. Agents write it out of habit
 as a technical spec: where each thing sits and what is under what, pixel

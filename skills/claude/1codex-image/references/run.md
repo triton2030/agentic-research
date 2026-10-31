@@ -103,7 +103,7 @@ them; the script assigns each piece to the cell holding its center.
 ## When a call fails
 
 - No key, no balance, API down: tell the owner the cause and offer a Codex
-  thread via `1codex`, but do not switch on your own — Codex spends his
+  thread by `1t3`, but do not switch on your own — Codex spends his
   subscription limit, and the choice is his.
 - `Transparent background is not supported for this model`: that is
   `gpt-image-2`; use a 2.5 model.

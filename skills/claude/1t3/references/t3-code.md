@@ -1,22 +1,11 @@
 # T3 Code under the skill
 
-Measured on 2026-10-14 on T3 Code 0.0.46-nightly with `full-access` sign-in,
-Muse Code 1.4.7 and `gemini-3.8-flash-high`. "Per the docs" or "per the tool
-description" means no live check.
-
-Rechecked on 2026-10-20 on 0.1.1-nightly: the server code still declares the
-same callers for each of its 71 tools and the same turn statuses the watcher
-waits on. New for an outside caller: the model catalog and thread behaviour
-below.
-
-Rechecked on 2026-10-24 on 0.1.3-nightly.20261024.3604 against the change
-list since 0.1.1: the watcher reads the database as before, the model catalog
-is unchanged. New: the `t3 thread` command, a short model list in
-`orchestrator_capabilities`, option-only answers to Gemini questions, and
-Grok failing on dropped connections — sections below. Also per change #22732:
-a thread launched from outside now takes the project's default model and
-permission level, within the sign-in level; before, it always got the full
-sign-in level. So set `runtimeMode` and `modelSelection` explicitly.
+Measurements below come from T3 Code 0.0.46-nightly (2026-10-14) through
+0.1.3-nightly (2026-10-24); on 2026-10-31 the server is 0.1.6-nightly and
+they were not rechecked on it. "Per the docs" or "per the tool description"
+means no live check. Since 0.1.3 (change #22732) a thread launched from
+outside takes the project's default model and permission level, within the
+sign-in level: set `runtimeMode` and `modelSelection` explicitly.
 
 ## Connection
 
@@ -111,49 +100,16 @@ From the CLI code and help, not measured:
 
 ## Server tools
 
-The server exposes about a hundred tools. Some act as the calling thread and
-refuse an outside client: `This tool acts as the calling T3 thread … This MCP
-client signed in from outside a thread`. An agent inside a thread gets the
-same server as `t3-code` and can use all of them.
+On 2026-10-31 the server has 66 tools, and they describe themselves. Some act
+as the calling thread and refuse an outside client with
+`thread_credential_required`: measured that day for `device_list`,
+`preview_status` and `t3_worktree_status`; `delegate_task`, `create_threads`
+and `task_*` refused in earlier probes. An agent inside a thread gets the same
+server as `t3-code` and can use all of them.
 
-| Group | Tools | From outside |
-| --- | --- | --- |
-| what's available | `orchestrator_capabilities`, `t3_environment_read` | yes, measured |
-| projects | `t3_project_list`, `t3_project_create`; `t3_project_read`, `_update`, `_clone`, `_delete` | first two measured |
-| threads | `t3_thread_launch`, `_send`, `_wait`, `_read`, `_list`, `_configuration`, `_interrupt` | yes, measured |
-| settings and order | `t3_thread_configure` (change model), `_update` (name, pull request), `_organize` (pin, snooze, close, archive), `_search` | per description; `_search` for an existing title returned nothing, `_list` with `titleContains` found it |
-| branches and context | `t3_thread_fork`, `_merge_back`, `_transfers` | per description |
-| message queue | `t3_queue_list`; `_read`, `_edit`, `_cancel`, `_reorder`, `_promote_to_steer` | reading measured |
-| agent questions | `t3_pending_request_list`, `_read`, `_respond`; command approvals can't be given this way | per description |
-| attachments | `t3_attachment_prepare_upload`, then `t3_thread_send_attachments`: images up to 10 MB, files up to 50 MB, up to eight at once | per description |
-| worktrees | `t3_worktree_list`; a new worktree comes from `workspaceStrategy` in `t3_thread_launch` | per description |
-| schedule | `schedule_task`, `list_scheduled_tasks`, `update_scheduled_task`, `run_scheduled_task_now`, `delete_scheduled_task` | reading measured |
-| pull requests | `link_pull_request`, `watch_pull_request`, `unwatch_pull_request`, `list_thread_pull_requests`, `write_pull_request_guides`, `read_pull_request_guide` | per description |
-| Claude workflows | `t3_workflow_stop` | per description |
-| child agents | `delegate_task`, `task_status`, `task_cancel`, `create_threads` | no: needs a calling thread |
-| browser | `preview_open`, `_navigate`, `_click`, `_type`, `_snapshot`, `_evaluate`, screen recording | no, measured |
-| phone | `device_list`, `device_open`, `device_screenshot`, `device_close` | no, measured |
-| page in the reply | `html_preview`, `html_render` | no, measured |
-| other in-thread tools | `request_secret`, `t3_worktree_handoff`, `t3_worktree_status`, `t3_environment_preferences_update` | no, per description |
-
-Worth knowing before a call, per tool descriptions:
-
-- Schedule: an interval from one minute, fixed times on weekdays, or a
-  webhook. Outside a thread each run opens a new thread on the project
-  default. A public webhook URL exists only with T3 Connect on.
-- Watching a pull request polls it every two minutes and wakes the thread on
-  a failed check, passed required checks, someone else's comment or a merge
-  conflict. It ends on merge, close or `unwatch_pull_request`.
-- The in-thread browser is shared with the owner: he sees the tab and can
-  take over; the profile carries saved sign-ins.
-- `device_open` starts an iOS simulator or Android emulator and shows it to
-  the owner; the agent then drives it with the `agent-device` utility.
-- `html_render` embeds a finished HTML page in the thread's reply;
-  `html_preview` returns its snapshot and console output.
-- `request_secret` shows the owner a private card; the value isn't returned
-  to the agent.
-- `delegate_task` gives the thread's agent a child on any provider; the
-  child gets only the task text, not the parent's history.
+- `t3_thread_search` for an existing title returned nothing; `t3_thread_list`
+  with `titleContains` found it.
+- Watching a pull request polls it every two minutes.
 
 ## Several agents on one T3 Code
 
@@ -179,7 +135,7 @@ the environment; an outside caller is limited only by its sign-in level.
 Measured on 2026-10-14, `gpt-6.1-sol` + `medium`, `full-access`:
 
 - T3 Code runs Codex from `/opt/homebrew/bin/codex` (`codex-cli 0.162.1`);
-  the `1codex` bridge runs it from the ChatGPT app (`0.162.0-alpha.17.2`).
+  the Claude bridge `experiments/codex-bridge` runs it from the ChatGPT app (`0.162.0-alpha.17.2`).
   Different engines, updated by different routes.
 - The Codex session log shows `model_context_window: 475000`. The T3 catalog
   has no window option.
@@ -317,31 +273,12 @@ from `~/.gemini/config/skills` — per T3 Code docs.
 
 ## Model and effort
 
-`modelSelection` is an object with `instanceId`, `model` and `options`. Effort
-is an element of the `options` array: `{"id": "reasoningEffort", "value":
-"xhigh"}`; for Claude, `effort`. `orchestrator_capabilities` shows the models
-and levels. Since T3 Code 0.1.3 (#22889) it returns a short list: `codex`,
-`claudeAgent`, `muse` and `grok` (the disabled Grok Build, not `cursor`) list
-all current models; `cursor` with Grok 4.7, `antigravity` and the rest list
-their first eight in the owner's order, without legacy and hidden models;
-`omittedModels` counts what was left out. The `search` parameter finds the
-rest, e.g. `"sonnet 4.6"`. Model options are now `{id, values, default}`
-without descriptions.
-
-Catalog on 2026-10-20, unchanged on 2026-10-24:
-
-| Provider | Models | Effort |
-| --- | --- | --- |
-| `codex` | `gpt-6.1-sol`, `gpt-6-astra`, `gpt-6-luna` | up to `max`, sol and astra also `ultra`; option `serviceTier: priority` — twice as fast, twice the quota |
-| `claudeAgent` | Opus 5.5, Fable 5.1, Sonnet 5.5, Haiku 5.5 | `effort` up to `max`, plus `ultracode` and `ultrathink` |
-| `antigravity` | `gemini-4-argon-low`, `-medium`, `-high`, `gemini-3.8-flash-high` | in the model name |
-| `muse` | `muse-wonder-full-1.0`, `muse-wonder-1.0` | `minimal` to `max` |
-| `cursor` | `grok-4.7`; `glm-5p3-flash` — outside the owner's plan | Grok `reasoning_effort` up to `xhigh`, GLM `reasoning` up to `max` |
-
-Older Gemini, Codex and Claude models are hidden in T3 Code settings
-(`providerModelPreferences.*.hiddenModels`); Gemini 4 Argon came later and is
-visible because it isn't hidden. Probe on 2026-10-20: `gemini-4-argon-high`
-answered in a `scratch` thread in 18 seconds, 9 of them thread setup.
+The catalog is `orchestrator_capabilities`; `search` finds models beyond its
+short list. Older Gemini, Codex and Claude models are hidden in T3 Code
+settings (`providerModelPreferences.*.hiddenModels`); Gemini 4 Argon came
+later and is visible because it isn't hidden. Probe on 2026-10-20:
+`gemini-4-argon-high` answered in a `scratch` thread in 18 seconds, 9 of them
+thread setup.
 
 | Muse tier | Measured |
 | --- | --- |
@@ -384,7 +321,7 @@ with `model … does not exist or you lack access`.
 - The watcher `scripts/wake_on_done.sh` reads `~/.t3/userdata/statev2.sqlite`
   read-only: turn status from `orchestration_v2_projection_runs`, agent
   questions from `orchestration_v2_projection_runtime_requests` (what
-  `t3_pending_request_list` returns). Its `run_id` is the one launch and send
+  `t3_pending_request` with `list` returns). Its `run_id` is the one launch and send
   return. Measured 2026-10-15: a Gemini turn ended 54 seconds after launch,
   the watcher woke the session 52 seconds into its wait. The schema is
   internal and may change with a nightly build; then the watcher exits with a
@@ -406,7 +343,7 @@ with `model … does not exist or you lack access`.
   and server code. The watcher waits up to a minute for the database and the
   continuation and follows the new turn.
 - In an unattended session (`claude -p`, cloud) a background command without
-  its own `timeout` lives 30 minutes — measured by the `1codex` bridge.
+  its own `timeout` lives 30 minutes — measured by the Claude bridge `experiments/codex-bridge`.
 - `t3_thread_read` with `view: "messages"` returns messages; with `view:
   "activity"`, steps: commands with output, file reads and edits, reasoning.
   Long text is cut; the rest comes from the same call with `itemId` and
@@ -415,11 +352,11 @@ with `model … does not exist or you lack access`.
   whole working folder with line counts. It doesn't tell authors apart and
   doesn't see files outside the folder.
 - Per the docs, an agent question with fixed options holds the thread even at
-  `full-access`; `t3_pending_request_list` shows it,
-  `t3_pending_request_respond` answers.
+  `full-access`; `t3_pending_request` `list` shows it,
+  `respond` answers.
 - A Gemini question accepts only one of its options. Since 0.1.3 (#22019) the
   server shows their values and `allowCustomAnswer: false`, but
-  `t3_pending_request_respond` doesn't validate the answer: free text reaches
+  `t3_pending_request` `respond` doesn't validate the answer: free text reaches
   the agent as cancelled, "User Skipped". The answer is matched first against
   an option's value, then against a unique label. Per the change
   description, not measured.

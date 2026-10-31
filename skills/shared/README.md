@@ -92,8 +92,10 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1orchestration` с 2026-09-06 имеет два runtime owners:
   `skills/codex/1orchestration/` — выбор фоновых Luna Max, Opus и собственных
   субагентов ради скорости, стоимости и качества; поглотил `1codex-bg-threads`.
-  `skills/claude/1orchestration/` — основное исполнение через отдельный `1codex`,
-  дешёвые собственные агенты и собственные Opus для аудита; та же рабочая память.
+  `skills/claude/1orchestration/` — с 2026-10-31 состав владельца для
+  Claude-оркестратора (Sonnet нативно, остальные семьи тредами T3), правила
+  развилок и приёмки; процесс и память — у скилов Matt Pocock, T3 и
+  `1work-artifacts`.
   Общий portable owner снят; установка
   обоих пакетов — `sync_simple_projections.py 1orchestration --write --install`.
   С 2026-09-02 поручение несёт причину результата и причину у каждой строки
@@ -106,7 +108,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   `agents/sessions.md` скриптом `scripts/session_line.py`, вопрос об архиве в
   конце, застывшие папки — одним списком после вопроса их живым сессиям.
   Маршруты сообщений между Claude и Codex — `references/reach-a-session.md`.
-  Потребители со своими папками файлов — `1orchestration`, мост `1codex`,
+  Потребители со своими папками файлов — `1orchestration`, мост `experiments/codex-bridge`,
   `1recraft`, Codex `1design-review`, проектный `2design-parliament`.
   Codex UI metadata — `platforms/codex/agents/openai.yaml`; история —
   `skills/1work-artifacts/`. Доставка:
@@ -163,13 +165,6 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   contract; runtime launch deltas для Codex `spawn_agent` и Claude `Agent`
   живут в одной адресуемой reference, а Codex UI metadata — в
   `platforms/codex/agents/openai.yaml`.
-- `1orchestration` с 2026-09-06 имеет два runtime owners:
-  `skills/codex/1orchestration/` — выбор фоновых Luna Max, Opus и собственных
-  субагентов ради скорости, стоимости и качества; поглотил `1codex-bg-threads`.
-  `skills/claude/1orchestration/` — основное исполнение через отдельный `1codex`,
-  дешёвые собственные агенты и собственные Opus для аудита; та же рабочая память.
-  Общий portable owner снят; установка
-  обоих пакетов — `sync_simple_projections.py 1orchestration --write --install`.
 - `1local-rules/portable/` — общая локальная дельта для project-local `2*`
   скилов Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только
   Codex UI metadata.

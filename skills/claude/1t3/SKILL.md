@@ -1,10 +1,9 @@
 ---
 name: 1t3
 description: >-
-  Use when the user asks for T3 Code agents, work should go to another model
-  family such as Muse or Gemini, a crypto question needs Grok, a T3 thread
-  needs a follow-up, or subscription limits matter. In Claude, Codex roles:
-  1codex.
+  Use when work goes to a T3 Code thread — launch, wait, follow-up, close —
+  when subscription limits matter, or audio, video or PDF needs Gemini. Whom
+  to call and with which model: 1orchestration.
 ---
 
 # T3 Code — agents for Claude Code and Codex
@@ -13,99 +12,60 @@ description: >-
 
 The owner runs the T3 Code app. It hosts threads of agents from several
 families on his subscriptions: Codex, Claude, Gemini, Muse and Grok. Its MCP
-server is connected to Claude Code and Codex as `t3`: about a hundred
-`mcp__t3__*` tools, loaded through the environment's tool search. Each
-environment signs in separately; an agent inside a thread sees the same
-server as `t3-code`. The owner watches threads in the app.
+server is connected to Claude Code as `t3`, loaded through tool search; an
+agent inside a thread sees the same server as `t3-code`. The owner watches
+threads in the app. Runs spend those subscriptions, not your context.
 
-The owner chose this route for three families: Muse Wonder, which Meta built
-for hard engineering work; Gemini 4 Argon and Gemini Flash from Google; and
-Grok 4.7 from xAI through the Cursor provider. From Claude Code, the skill
-`1codex` decides when Codex is used, in which role and tier; launching and
-running the thread happen here. From Codex, this skill launches threads
-directly, without Claude or `1codex`. Whether to delegate at all, and with
-which model and effort, follows the task and the current environment's rules.
-Runs spend those subscriptions, not your context.
+The server's tools describe themselves, and the model catalog is
+`orchestrator_capabilities`. This skill adds only what they don't say:
+measured behaviour of threads and providers, the owner's rules for threads,
+and scripts. Whom to call, with which model and effort, is decided by
+`1orchestration`.
 
 In commands below, `<skill-dir>` is the absolute path of the folder this
-`SKILL.md` was read from, usually `~/.claude/skills/1t3` or
-`~/.codex/skills/1t3`.
+`SKILL.md` was read from, usually `~/.claude/skills/1t3`.
 
 ## Task
 
-Hand work to a Muse, Gemini or Grok thread, and audio and video to the
-script; run the thread as a conversation and close out its answer.
+Launch and run T3 Code threads, send audio and video to the script, and close
+out each answer.
 
 ## Goal
 
-Every paid run ends with a named effect: what it changed in your work or
-decision, or why it changed nothing. From the thread title in T3 Code the
-owner can tell what his quota was spent on. Other agents' threads are the
-same after your work as before it.
+From the thread title in T3 Code the owner can tell what his quota was spent
+on. Other agents' threads are the same after your work as before it.
 
-## When choosing who gets the work
+## What each agent in a thread can't do
 
-| Who | What | Not for |
-| --- | --- | --- |
-| Muse, thread | audit before you call work done; advice before choosing a route; doing a whole piece of work | PDF, audio, video: he can't open them |
-| Gemini Argon, thread | audit before you call work done; advice before choosing a route; judging a complex system — a third family next to Muse and Codex | audio, video, PDF: the script takes them; writing: Flash does it |
-| Gemini Flash, thread | read and summarize a batch of project files, a long document, web pages; write, edit or shorten text; carry out a precisely specified edit | audit, route choice, judging a complex system: Flash is confident where it is wrong — that is Argon's work |
-| Grok, thread | audit and advice; crypto questions first of all: market, tokens, projects, sentiment and psychology of the crypto community | X feed summaries: his thread has web search only, no X search; audio, video, PDF: his read tool takes text and images, per its description |
-| Gemini, script | listen to audio, watch video, read PDF; read files outside the thread's project — Gemini in a thread won't open them | — |
-| Codex, thread | from Claude — work per `1codex`; from Codex — delegated work in a visible T3 thread | native diff review and reading the caller's transcript: T3 lacks them; from Claude the `1codex` bridge has them |
-| Claude on the Google subscription, script with `--model claude-opus-5-5-high` | reading, summary, draft, web search, when the brief and a folder are enough | an independent view from another family when the caller is Claude itself |
+| Agent | Limits |
+| --- | --- |
+| Muse | can't open PDF, audio or video. `muse-wonder-full-1.0` at `xhigh`: a small edit with tests took two minutes, an audit of several files about nine |
+| Gemini | in a thread can't hear or see: audio, video and PDF go to the script below. Effort is part of the model name. Argon has its own weekly quota, separate from Flash, and is expensive: the owner keeps writing, editing and shortening text on `gemini-3.8-flash-high`. Flash is confident where it is wrong, so audit and route choice are not its work |
+| Grok | web search only, no X search; its read tool takes text and images, not audio, video or PDF. It finds recent events only through web search: ask for dated sources |
+| Codex | no native diff review and no reading of the caller's transcript: for those the Claude bridge `~/Documents/GitHub/agentic-research/experiments/codex-bridge` |
+| Claude | only Codex launches Claude threads — [how](references/t3-code.md#claude-in-a-thread); from Claude Code use your own subagents |
 
 Audio and video go only to the script. Gemini in a thread is a different
 Google agent that can't hear or see: it gets media as raw bytes and spends
 minutes hunting for a workaround across the disk. Only the Antigravity CLI
-hears and sees, hence `scripts/gemini.py`. Measured on Flash; Argon was not
-tried with media. How to call the script and check a transcript —
+hears and sees, hence `scripts/gemini.py`; it defaults to Flash, and
+`--model gemini-4-argon-high` switches it to Argon. Measured on Flash; Argon
+was not tried with media. How to call the script and check a transcript —
 [references/gemini-media.md](references/gemini-media.md).
 
-Only Codex launches Claude threads in T3 —
-[how](references/t3-code.md#claude-in-a-thread). From Claude Code, don't call
-Claude through T3; use your own subagents.
-
 The owner's Google subscription includes Claude Opus and Sonnet with a quota
-separate from Gemini, and he wants that quota spent too.
-
-Call Muse when the owner names him, a Meta model or T3 Code. Don't pick him
-yourself: the owner hasn't decided when Muse is called unasked.
-
-Muse defaults to `muse-wonder-full-1.0` at `xhigh`: a small edit with tests
-takes two minutes, an audit of several files about nine. For a short question
-where speed beats depth, take `muse-wonder-1.0` at `high`. These are the
-owner's defaults, not limits: choose Muse's model and effort for the
-situation from `orchestrator_capabilities`.
-
-Gemini has two models, both chosen by the owner: `gemini-4-argon-high` is the
-auditor and adviser; `gemini-3.8-flash-high` is the reader, writer and doer
-of precise edits. Gemini writes text — writing, editing, shortening — only on
-Flash High: Argon is expensive and the owner won't spend it on text. Argon
-has its own weekly quota, separate from Flash. The script defaults to Flash;
-`--model gemini-4-argon-high` switches it to Argon.
-
-Crypto questions go to Grok: in the owner's words, it learned from X and the
-crypto community's discussions and understands those people better. Outside
-crypto it stands next to Argon in audit and advice; take one or both when you
-need two independent views. Grok finds recent events only through web search,
-so ask it for dated sources.
+separate from Gemini, and he wants that quota spent too: the script with
+`--model claude-opus-5-5-high` reads, summarizes, drafts and searches the web
+when a brief and a folder are enough. It is not an independent view from
+another family when the caller is Claude.
 
 ## When writing the brief
 
-Write sections **Context → Goal → Boundaries → Done when** and pass primary
-artifacts as paths: your retelling hands the agent your own mistake along
-with the task. Muse follows the project's `AGENTS.md` himself; Gemini Flash
-did not in a probe, Argon wasn't checked; Grok receives the root `AGENTS.md`,
-but following it wasn't checked — name the project rules they need in the
-brief.
-
-| Role | In the brief |
-| --- | --- |
-| auditor | the work and its original criteria without your conclusion; "don't change files"; for every check, the command and its exit code; permission to say "the work holds" |
-| adviser | the decision to make, facts as paths, constraints; no conclusion of yours; "don't change files" |
-| doer | the zone: what to change and what to leave alone; what neighbours and you are doing meanwhile; the check in "Done when" |
-| reader | what to read, as paths; in "Done when" — `path:line` and verbatim quotes, so you can check the answer |
+How to write a brief is `1orchestration`'s; a thread adds the following.
+Muse follows the project's `AGENTS.md` himself; Gemini Flash did not in a
+probe, Argon wasn't checked; Grok receives the root `AGENTS.md`, but following
+it wasn't checked — name the project rules they need in the brief. Ask a
+reader for `path:line` and verbatim quotes, so you can check the answer.
 
 A thread has no sandbox: Muse and Grok write outside the working folder,
 Gemini does through shell commands. Only the brief's words set boundaries,
@@ -133,43 +93,31 @@ at files with keys or passwords.
 
 ## When launching a thread
 
-A thread needs a T3 Code project. Find the `projectId` in `t3_project_list`
-by the working folder's `workspaceRoot`; if there is none, create one with
-`t3_project_create` (`title`, `workspaceRoot`). For work without project
-files, pass `scratch: true` instead.
-
-`t3_thread_launch` arguments:
+`t3_thread_launch` arguments; `instanceId` is the catalog's
+`providerInstanceId`, and `options` is a list of `{id, value}` whose ids the
+catalog names per model (Grok's effort is `reasoning_effort`, Gemini's is in
+the model name):
 
 ```json
 {
-  "title": "Muse wonder-full/xhigh · auditor · <gist>",
+  "title": "Codex gpt-6.1-sol/max · doer · <gist>",
   "projectId": "<id>",
   "runtimeMode": "full-access",
   "modelSelection": {
-    "instanceId": "muse",
-    "model": "muse-wonder-full-1.0",
-    "options": [{"id": "reasoningEffort", "value": "xhigh"}]
+    "instanceId": "codex",
+    "model": "gpt-6.1-sol",
+    "options": [{"id": "reasoningEffort", "value": "max"},
+                {"id": "serviceTier", "value": "default"}]
   },
   "message": "<brief>"
 }
 ```
 
-- Gemini: `{"instanceId": "antigravity", "model": "gemini-4-argon-high"}` for
-  the auditor and adviser, `{"instanceId": "antigravity", "model":
-  "gemini-3.8-flash-high"}` for the reader, writer and doer. Gemini's effort
-  is part of the model name.
-- Grok: `{"instanceId": "cursor", "model": "grok-4.7", "options":
-  [{"id": "reasoning_effort", "value": "high"}]}` — the effort option has a
-  different name than for Codex and Muse.
-- Codex: `{"instanceId": "codex", "model": "gpt-6.1-sol", "options":
-  [{"id": "reasoningEffort", "value": "medium"}, {"id": "serviceTier",
-  "value": "default"}]}`; from Claude, `1codex` picks the tier. Always set
-  effort: T3 Code gives sol `low` by default. Always set `serviceTier` to
-  `default` (Standard in the app): T3 Code defaults Codex to `priority` (Fast,
-  about twice the speed at higher usage), and the owner does not want to pay
-  for it (31.10.2026). Changing it on a running thread interrupted the turn.
 - `title`: `<agent> <model>/<effort> · <role> · <gist>`, the gist in a few
   words without paths: the title is how the owner sees where his quota went.
+- Codex: always set `serviceTier` to `default` (Standard in the app): the
+  owner does not pay for Fast (31.10.2026). Changing it on a running thread
+  interrupted the turn.
 - Always set `runtimeMode`. Without it, since T3 Code 0.1.3 the thread gets
   the project's default permission level (per the change description); at an
   approval level it waits for consent on every command, and nobody is there
@@ -179,14 +127,16 @@ files, pass `scratch: true` instead.
   `t3_thread_list` for the project with `statuses: ["running"]`: other agents
   of the owner may have started threads. Give it a zone nobody else edits, or
   a separate copy: `workspaceStrategy` of type `worktree` with `baseRef`.
-  Uncommitted work doesn't reach the copy (per the tool description).
+  Ignored files such as `node_modules` don't reach the copy either, and a
+  project's `runOnWorktreeCreate` script did not run for a thread launched
+  through MCP: put the setup command into the brief.
 
 T3 Code doesn't know which of the owner's agents launched a thread: all
 Claude Code sessions and their subagents sign in as one client and see each
 other's threads, and titles look alike. So the `threadId` from the launch
 response is the only proof the thread is yours; keep it until the work ends.
-After launching, give the owner the link `[title](t3-thread://v1/<threadId>)`
-with the role and task.
+After launching, give the owner the thread's `link` from the response with
+the role and task.
 
 ## When waiting for a turn to end
 
@@ -250,11 +200,10 @@ Codex), the gist and a number.
 
 ## When the agent asks a question
 
-`t3_pending_request_list` shows the question, `t3_pending_request_read` its
-options; answer with `t3_pending_request_respond`. Gemini accepts only one of
-the offered options: free text reaches it as a skipped question, "User
-Skipped" (per the T3 Code 0.1.3 change description). Command approvals can't
-be given this way: the owner gives them in the app.
+Answer with `t3_pending_request`. Gemini accepts only one of the offered
+options: free text reaches it as a skipped question, "User Skipped" (per the
+T3 Code 0.1.3 change description). Command approvals the owner gives in the
+app.
 
 ## When the thread has finished
 
@@ -263,25 +212,15 @@ Read its final message with `~/.t3/bin/t3 thread show '<threadId>' --messages 1`
 one call of plain text, where `t3_thread_read` returns JSON and needs the
 last item's position.
 
-- Accept a doer by `git status` and `git diff` of its zone against the brief
-  and every message you sent, and rerun the check yourself: the final message
-  may report an earlier task as done. The `checkpoint` entry lists changed
-  files in the whole working folder, neighbours' edits included, and misses
-  files outside it.
+Acceptance is `1orchestration`'s; a thread adds two traps:
+
+- The final message may report an earlier task as done: check a doer's diff
+  against the brief and every message you sent, and rerun the check yourself.
+  The `checkpoint` entry lists changed files in the whole working folder,
+  neighbours' edits included, and misses files outside it.
 - For an auditor, adviser or reader, `git status` after the thread equals the
   one before. If it changed, the agent edited against the brief or someone
   wrote nearby.
-- Split an auditor's or adviser's answer into substantive findings and close
-  each:
-
-  | Outcome | Closed by |
-  | --- | --- |
-  | accepted | applied to a named decision or artifact; for "the work holds", the check it rests on is named |
-  | rejected | counter-evidence from primary sources, not your disagreement |
-  | unresolved | stays explicitly open |
-
-- Check a reader's summary against the primary source at the addresses it
-  gave wherever a decision rests on it.
 
 ## When continuing the conversation
 
@@ -365,19 +304,12 @@ shows, are spent only by the owner.
 
 ## When you need more than a thread
 
-| Need | Tools | Available to |
-| --- | --- | --- |
-| scheduled or webhook work while no session is open | `schedule_task`, `list_scheduled_tasks` | you |
-| watching a pull request: a failed check, comment or conflict wakes the thread | `watch_pull_request`, `link_pull_request` | you, with a `threadId` |
-| branch a conversation to try another path without losing the original; move context between threads | `t3_thread_fork`, `t3_thread_merge_back` | you |
-| a queue of messages behind a running turn | `t3_queue_*` | you |
-| an image or file into a thread | `t3_attachment_prepare_upload`, `t3_thread_send_attachments` | you |
-| tidy the thread list: rename, pin, snooze, archive | `t3_thread_update`, `t3_thread_organize` | you |
-| a browser shared with the owner, a phone simulator, a page rendered in the reply, child agents of any family | `preview_*`, `device_*`, `html_render`, `delegate_task` | only an agent inside a thread |
-
-The last row's tools refuse you: your client signed in from outside a
-thread. If you need their result, give it to a thread as a task. Which rows
-are measured and each group's limits — in the reference.
+The server's other tools — schedules, pull-request watching, forks and
+queues, attachments, tidying the thread list — describe themselves. Browser,
+phone simulator, rendered pages and child agents (`preview_*`, `device_*`,
+`html_render`, `delegate_task`) and `t3_worktree_status` refuse you with
+`thread_credential_required`: your client signed in from outside a thread.
+If you need their result, give it to a thread as a task.
 
 ## When the route fails
 
@@ -393,15 +325,11 @@ are measured and each group's limits — in the reference.
   doesn't connect MCP.
 - Launch refused with `capability_denied` — the client's sign-in expired or
   is read-only. The owner fixes it; what to tell him is in the reference.
-- A model is missing from `orchestrator_capabilities` — find it with the
-  `search` parameter: since T3 Code 0.1.3 the list shows every model only for
-  Codex, Claude and Muse; Cursor with Grok 4.7, Gemini and other providers
-  show their first eight. Not there either, or the turn failed with `does not
-  exist or you lack access` — the model left the subscription. The owner
-  picks a replacement.
+- A model isn't in `orchestrator_capabilities` even with `search`, or the
+  turn failed with `does not exist or you lack access` — the model left the
+  subscription. The owner picks a replacement.
 - A Cursor turn failed with `not included in your weekly usage` — the model
-  is outside the owner's plan: GLM 5.3 Flash fails this way; the plan covers
-  only Grok models.
+  is outside the owner's plan: GLM 5.3 Flash fails this way.
 - A Grok turn failed with `Agent turn stopped after repeated resume attempts
   made no progress` — the full answer is usually already in the feed: take
   the last one and ask for more in the same thread. Two of nine long Grok
@@ -417,7 +345,6 @@ are measured and each group's limits — in the reference.
   remainder. A message to the same thread after the reset continues it; it
   cancels a continuation the owner scheduled.
 
-Thread internals, agents' permissions, server tool groups, the `t3 thread`
-command and measurements are in
-[references/t3-code.md](references/t3-code.md): open it when a thread behaves
-differently from this text or you need a capability from the table above.
+Thread internals, agents' permissions, the `t3 thread` command and
+measurements are in [references/t3-code.md](references/t3-code.md): open it
+when a thread behaves differently from this text.
