@@ -47,8 +47,9 @@ description: >-
   с active в `/opt/homebrew`; первым стоит `~/.local/bin/node` — ссылка на
   отдельный бинарь nodejs.org в `~/.local/share/node/vX/bin/`. Homebrew его
   не обновляет, кто поставил — не записано. Меняй только по просьбе владельца,
-  до версии `/opt/homebrew/bin/node`: `bin/node` из `node-vX-darwin-arm64.tar.xz` (сверь
-  `SHASUMS256.txt`) в новую папку версии, затем `ln -sfn`. Проверяй
+  до версии `/opt/homebrew/bin/node`: `bin/node` из
+  `node-vX-darwin-arm64.tar.xz` (сверь `SHASUMS256.txt`) в новую папку
+  версии, затем `ln -sfn`. Проверяй
   `which -a` и `realpath`. Проектный pin (`engines`, `.nvmrc`) сильнее
   глобального и сам runtime не переключает.
 - **Локальные сборки.** `md-tools` (uv editable), `qv-skill`, `plugin-eval`
