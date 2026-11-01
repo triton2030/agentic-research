@@ -50,16 +50,14 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   `skills/1skill-shaping/` и `skills/1instruction-shaping/`; решение владельца —
   `_ops/chat-recall/raw/2026-08-26-201025-claude-4e40828f.md#L15`):
   - `1instruction-authoring/portable/` — механика местного слоя корневых
-    и папочных инструкций: что найти, куда положить, как проверить доставку.
-    Общая наука письма — у `1agent-steering`, здесь не повторяется.
-    Названная заранее правка обходится без discovery и тройной проверки,
-    если не вводит новое обязательство или зону и не снимает дорогое.
-    `references/discovery.md` находит подтверждённые местные обязательства,
-    `writing.md` выбирает носитель, владельца и момент применения,
-    `verification.md` разделяет три проверки: смысл, необходимость, доставка.
-    Пробы применимости, неприменимости и конфликта выполняются до передачи
-    проверяющему ожидаемого ответа. Сохраняются необследованные зоны,
-    Maintain-цель зоны, реальные механизмы и нормативное старшинство.
+    и папочных инструкций: слой — роутер к живому проекту, строка есть только
+    там, где привычка агента разошлась бы с проектом, и несёт условие
+    применения. Общая наука письма — у `1agent-steering`, здесь
+    не повторяется. Отбор строки, раскладка и доставка — в `SKILL.md`;
+    `references/discovery.md` — прогноз привычки до чтения и читатели папок,
+    `references/verification.md` — три роли проверки свежими агентами.
+    Названная заранее правка обходится без них, если не вводит новое
+    обязательство или зону и не снимает дорогое.
     Принципы — `1instruction-authoring/product-frame.principles.md`;
     история — `skills/1instruction-authoring/`.
   - `1skill-creation/portable/` — создание, адресная правка и переработка
@@ -120,8 +118,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   `~/.claude/skills/1smart-simple/` и `~/.codex/skills/1smart-simple/` —
   единственная правда (v4, 2026-09-06; история — `skills/1smart-simple/`).
   На него маршрутизируют `1skill-creation/reference-files.md` (случай проверки
-  нагрузки), `1instruction-authoring/writing.md` и
-  `1document-system/overgrown.md`.
+  нагрузки) и `1document-system/overgrown.md`.
 - `1folder-tree/portable/` — дом, имя и проверка дерева базы документов
   проекта: карта владельца и источник сборки для агента. Установлен
   2026-09-09 из внешнего пакета `kb-tree.skill` с переименованием по решению
