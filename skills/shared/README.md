@@ -4,262 +4,84 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 
 # Shared Skill Owners
 
-Эта папка владеет пакетами, у которых переносимый смысл и runtime-дельты
-должны меняться как одно целое. Она не является третьим installed runtime.
+Реестр владельцев: где живёт исходник пакета и как он доставляется.
+Что пакет делает, говорит его `SKILL.md`; реестр это не пересказывает —
+пересказ устаревает молча.
 
-## Живые Owners
+## Правила
 
-- `1google-drive-archive/portable/` — проверка оригиналов Google Drive перед
-  освобождением места на Mac, свежие свидетельства и отдельное согласование
-  локального действия. Общий пакет Codex/Claude; `platforms/codex/agents/openai.yaml`
-  содержит только UI metadata. Доставка:
-  `sync_simple_projections.py 1google-drive-archive --write --install`.
-  История — `skills/1google-drive-archive/`.
+- Правка начинается с владельца. `skills/{claude,codex}/<имя>/` — tracked
+  projections, `~/.{claude,codex}/skills/<имя>/` — установленные; их
+  не правят напрямую.
+- Общий пакет — `skills/shared/<имя>/portable/`. Runtime-дельта Codex —
+  `platforms/codex/agents/openai.yaml`, только UI metadata.
+- Reference-файл живёт ровно у одного владельца; соседи ссылаются на него.
+- История пакета — `skills/<имя>/`.
 
-- T3 с 2026-10-27 имеет два отдельных runtime owners:
-  `skills/claude/1t3/` — прежний пакет Claude Code;
-  `skills/codex/1t3-codex/` — версия Codex, включая вызов Claude вместо
-  снятого `1claude-mcp`. Общий owner снят; история — `skills/1t3/`
-  и `skills/1t3-codex/`. Доставка каждого пакета —
-  `sync_simple_projections.py <имя> --write --install`.
-- `1fresh-eyes` — два runtime owners: `skills/{claude,codex}/1fresh-eyes/`.
-  Общая продуктовая пара живёт у Claude owner и не устанавливается.
-  Профиль Expansionist принадлежит `agents/expansionist.{md,toml}` этих
-  пакетов и дополнительно доставляется в `~/.{claude,codex}/agents/`.
-  Остальные native-профили сохраняют существующих владельцев.
-  Доставка — по явному manifest из истории `skills/1fresh-eyes/`.
-- `1illustrations-and-charts/portable/` — компактные схемы, SVG и макеты интерфейса рядом со сложным объяснением; переносимое ядро для Claude и Codex. Проектные пути и CSS остаются в документации проекта.
-- `1writing-rule/portable/` — личное «Правило письма»: качество заказанного текста,
-  подробный материал для файлов и маршруты к `1docs-write`, `1folder-tree`
-  `1smart-simple` и `1illustrations-and-charts`.
-  Codex UI metadata — `platforms/codex/agents/openai.yaml`.
-- `1write-as-me/portable/` — сообщения коллегам и друзьям голосом владельца:
-  его английский с ошибками, серии коротких сообщений, пары «как надо / как не надо».
-  Для его сообщений заменяет гладкость `1writing-rule`.
-  Codex UI metadata — `platforms/codex/agents/openai.yaml`.
-  Образцы и разбор стиля — в рабочей папке Subfrost
-  `_workspace/work-artifacts/2026-10-29-стиль-письма-владельца/`.
-- `1agent-steering/portable/` — общий скилл знания: полное чтение науки
-  управления агентами и объяснение её применения при авторинге. Материал —
-  `references/steering-science.md`: рычаги управляющего текста с пробой
-  у каждого (с 2026-10-10 по образцу `writing-for-agents` Matt Pocock).
-  Потребители — `1skill-creation`, `1instruction-authoring`, `1goal`,
-  `1orchestration`. Codex metadata живёт в `platforms/codex/agents/openai.yaml`.
-- Семья авторинга — скилы по различимым моментам запуска, заменили пару
-  `1skill-shaping` + `1instruction-shaping`, снятую 2026-08-26 (архивы в
-  `skills/1skill-shaping/` и `skills/1instruction-shaping/`; решение владельца —
-  `_ops/chat-recall/raw/2026-08-26-201025-claude-4e40828f.md#L15`):
-  - `1instruction-authoring/portable/` — механика местного слоя корневых
-    и папочных инструкций: слой — роутер к живому проекту, строка есть только
-    там, где привычка агента разошлась бы с проектом, и несёт условие
-    применения. Общая наука письма — у `1agent-steering`, здесь
-    не повторяется. Отбор строки, раскладка и доставка — в `SKILL.md`;
-    `references/discovery.md` — прогноз привычки до чтения и читатели папок,
-    `references/verification.md` — три роли проверки свежими агентами.
-    Названная заранее правка обходится без них, если не вводит новое
-    обязательство или зону и не снимает дорогое.
-    Принципы — `1instruction-authoring/product-frame.principles.md`;
-    история — `skills/1instruction-authoring/`.
-  - `1skill-creation/portable/` — создание, адресная правка и переработка
-    скилов в общей мастерской. Контекст, Задача, необходимые Критерии и Цель
-    несут разные смыслы; число разделов и пунктов не задаётся квотой.
-    `references/goal-context.md` восстанавливает основания намерения,
-    `behavior-protocol.md` отбирает дополнения, `reference-files.md` разводит
-    моменты чтения, `skill-short-description.md` управляет вызовом.
-    `refactor.md` сохраняет границу заказа и ведёт автора до карты потерь;
-    отдельного пишущего агента не требует. `check-approve.md` задаёт три
-    независимые роли: смысл, необходимость, применение и результат.
-    `install-approved.md` доставляет изменение в пределах уже данного
-    разрешения. Принципы — `1skill-creation/product-frame.principles.md`;
-    история — `skills/1skill-creation/`.
-  У каждого `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
-  Reference-файл живёт ровно у одного владельца; соседи ссылаются относительно.
+## Общие owners
 
-- `1md-search/portable/` — общий cognitive/tool core для
-  Codex и Claude; `platforms/codex/agents/openai.yaml` — только Codex UI и
-  invocation metadata. Сосед `1md-read` снят 2026-08-22 по решению владельца,
-  архив в `skills/1md-read/`.
-- `1deep-agents/portable/` — общий framework-routing, trace и synthesis
-  contract; runtime launch deltas для Codex `spawn_agent` и Claude `Agent`
-  живут в одной адресуемой reference, а Codex UI metadata — в
-  `platforms/codex/agents/openai.yaml`.
-- `1code-router/portable/` — обязательный стратегический взгляд перед кодом
-  для Claude и Codex с маршрутами к скилам Matt Pocock и книжным; до 2026-10-30
-  назывался `1readable-code`. `platforms/codex/agents/openai.yaml` содержит
-  только Codex UI metadata; история — `skills/1code-router/`.
-- `1orchestration` с 2026-09-06 имеет два runtime owners:
-  `skills/codex/1orchestration/` — выбор фоновых Luna Max, Opus и собственных
-  субагентов ради скорости, стоимости и качества; поглотил `1codex-bg-threads`.
-  `skills/claude/1orchestration/` — с 2026-10-31 состав владельца для
-  Claude-оркестратора (Sonnet нативно, остальные семьи тредами T3), правила
-  развилок и приёмки; процесс и память — у скилов Matt Pocock, T3 и
-  `1work-artifacts`.
-  Общий portable owner снят; установка
-  обоих пакетов — `sync_simple_projections.py 1orchestration --write --install`.
-  С 2026-09-02 поручение несёт причину результата и причину у каждой строки
-  дельты (`_ops/chat-recall/2026-09-02-151925-claude-0c84f259.md#L25`).
-- `1local-rules/portable/` — общая локальная дельта для project-local `2*`
-  скилов Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только
-  Codex UI metadata.
-- `1work-artifacts/portable/` — рабочая папка одной работы во всех проектах
-  владельца, с 2026-10-29: найти или завести, строка каждой сессии в
-  `agents/sessions.md` скриптом `scripts/session_line.py`, вопрос об архиве в
-  конце, застывшие папки — одним списком после вопроса их живым сессиям.
-  Маршруты сообщений между Claude и Codex — `references/reach-a-session.md`.
-  Потребители со своими папками файлов — `1orchestration`, мост `experiments/codex-bridge`,
-  `1recraft`, Codex `1design-review`, проектный `2design-parliament`.
-  Codex UI metadata — `platforms/codex/agents/openai.yaml`; история —
-  `skills/1work-artifacts/`. Доставка:
-  `sync_simple_projections.py 1work-artifacts --write --install`.
-- `1product-shaping/portable/` создаёт чистые Product Principles + Frame и
-  журнал обоснований; `1use-principles/portable/` применяет их к развилкам и
-  пустотам.
-- `1smart-simple` — tracked owner отсутствует; живые пакеты
-  `~/.claude/skills/1smart-simple/` и `~/.codex/skills/1smart-simple/` —
-  единственная правда (v4, 2026-09-06; история — `skills/1smart-simple/`).
-  На него маршрутизируют `1skill-creation/reference-files.md` (случай проверки
-  нагрузки) и `1document-system/overgrown.md`.
-- `1folder-tree/portable/` — дом, имя и проверка дерева базы документов
-  проекта: карта владельца и источник сборки для агента. Установлен
-  2026-09-09 из внешнего пакета `kb-tree.skill` с переименованием по решению
-  владельца; триггер — русские фразы владельца «дерево папок»,
-  «информационная архитектура», «куда положить файл», «как назовём папку»,
-  «в какой папке что должно храниться»
-  (`_ops/chat-recall/2026-09-09-165057-claude-code-ad6a2458.md#L18`).
-  2026-09-10 — полный рефактор по `1skill-creation` вместе с `1docs-write`
-  (история и карта потерь — `skills/1folder-tree/`): два критерия «Критично» —
-  ни одна папка не смешивает файлы и подпапки (`/Users/triton/Documents/My_projects/mavo3/_ops/chat-recall/2026-09-10-125652-claude-code-c2a5de2f.md#L20`), имя файла — сторона
-  вещи, имя папки — вещь словами владельца; три критичные инструкции (сначала
-  `AGENTS.md` базы; любое движение существующего — предложение владельцу; дом и
-  имя здесь, текст внутри файла — `1docs-write`); пять наборов по моменту
-  применения. Проектное — корень, язык имён, полки, роли, планы и цель —
-  объявляет `AGENTS.md` базы. Утверждено владельцем и установлено 2026-09-10
-  (`_ops/chat-recall/2026-09-10-135753-claude-code-c2a5de2f.md#L22`). Парные примеры — `references/`;
-  `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
-  Потребитель — `1docs-write` (дом, имя, отсылки).
-  2026-09-18 — адресная правка по слову владельца «порядок знаний»: владелец читает
-  имена в порядке показа; третий критерий приёмки — пересказ по именам, а где
-  порядок чтения есть, и что читать раньше; порядок соседей показывается в
-  отображении, не вложенностью, способом инструкции базы (в mavo3 — цифра в
-  начале имени); история — `skills/1folder-tree/work/order-2026-09-18/`.
-  2026-09-27 — переработка замысла вместе с адресной правкой `1docs-write`:
-  три вида знания о продукте по скорости изменений, место показа без правил
-  и шагов, имя как обещание, проверяемое по тексту файлов, вложенность по
-  общему изменению; одобрено владельцем (`mavo3/_ops/chat-recall/2026-09-27-162252-Claude-7447c57c.md#recall-05230b0e33454b6f92d2f4bf4e6b9e52`);
-  история — `skills/1folder-tree/work/kinds-and-names-2026-09-27/`.
-- `1document-system/portable/` — запись долгоживущего в документы проекта: где
-  живёт ответ, каким деловым типом он назван и что вообще считается
-  установленным. Пакет — тело плюс четыре стадии по состоянию дома
-  (`existing-home`, `new-home`, `derivative`, `overgrown`): агент читает тело и
-  стадию своего случая, а не все требования сразу. С 2026-09-02 связь решённого с
-  его причиной и соседями держат метаданные документа, а не проза в теле
-  (`_ops/chat-recall/2026-09-02-151925-claude-0c84f259.md#L27`).
-- `1md-search/portable/` — общий cognitive/tool core для
-  Codex и Claude; `platforms/codex/agents/openai.yaml` — только Codex UI и
-  invocation metadata. Сосед `1md-read` снят 2026-08-22 по решению владельца,
-  архив в `skills/1md-read/`.
-- `1deep-agents/portable/` — общий framework-routing, trace и synthesis
-  contract; runtime launch deltas для Codex `spawn_agent` и Claude `Agent`
-  живут в одной адресуемой reference, а Codex UI metadata — в
-  `platforms/codex/agents/openai.yaml`.
-- `1local-rules/portable/` — общая локальная дельта для project-local `2*`
-  скилов Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только
-  Codex UI metadata.
-- `1product-shaping/portable/` создаёт чистые Product Principles + Frame и
-  журнал обоснований; `1use-principles/portable/` применяет их к развилкам и
-  пустотам.
-- `1document-system/portable/` — письмо и существенная правка одного документа
-  проекта: стандартное деловое имя типа как адрес, жанровая дисциплина и
-  вытеснение замещённого вместо дописывания рядом (v2, 2026-09-01; v1 из 24
-  файлов снят, снапшот — `skills/1document-system/v1-2026-08-09/`). Пакет — два
-  файла: тело и `references/type-selection.md`, который открывается только
-  тогда, когда тип документа корпусом ещё не задан. Имена типов, разделы и
-  метаданные уступают живому реестру проекта, жанровые запреты — никогда.
-  `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
-- `1docs-write/portable/` — запись одного знания о продукте в базу
-  документов: статус по словам владельца (`1chat-recall`), дом по
-  `1folder-tree`, тело только знание, происхождение в сносках.
-  `references/проверка-документов.md` — распределённая проверка оснований,
-  достаточности для читателя и согласованности связей; основной агент принимает
-  результат. Добавлена 2026-09-14; прежняя история пакета ниже. С 2026-09-09
-  `_docs` — единственный дом продуктовой правды рядом с GOAL: слой `_canon` и
-  скил `1canon-write` сняты
-  (`_ops/chat-recall/2026-09-09-111723-claude-code-571bf7e3.md#L17`; снятый
-  пакет — `skills/1canon-write/`). 2026-09-10 — полный рефактор по
-  `1skill-creation` вместе с `1folder-tree` (история — `skills/1docs-write/`):
-  три критерия «Критично» — тело в двух режимах (знание целиком либо знак
-  пробела, объявленный `AGENTS.md` базы, например `[!question]`), в теле нет
-  состояния проекта, предложения агента и расхождения с кодом только в чат
-  (`/Users/triton/Documents/My_projects/mavo3/_ops/chat-recall/2026-09-10-125652-claude-code-c2a5de2f.md#L27`, `#L29`–`#L32`; P-008 в `skills/1docs-write/product-frame.principles.md`);
-  три критичные инструкции (не пересказывай скил; свежее слово владельца
-  сначала в корпус; код — свидетельство о реализации, не источник намерения);
-  семь наборов по моменту применения; один reference «разбор старого
-  документа» вместо трёх прежних режимов; `scripts/doc_map.py` выводит карту
-  description и aliases без записи. Дешёвые после кода детали для сборки —
-  в документ решением владельца 2026-09-10 (`/Users/triton/Documents/My_projects/mavo3/_ops/chat-recall/2026-09-10-125652-claude-code-c2a5de2f.md#L38`, снимает решение
-  2026-09-05 `…cfb9aa25.md#L21`). Утверждено и установлено 2026-09-10
-  (`_ops/chat-recall/2026-09-10-135753-claude-code-c2a5de2f.md#L22`). `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
-  2026-09-27 — адресная правка вместе с `1folder-tree`: сценарий и экран ведут
-  к правилу, прогон случая на конкретном примере, решение о продукте против
-  примера раскладки; история — `skills/1docs-write/work/kinds-and-names-2026-09-27/`.
+Владелец — `skills/shared/<имя>/portable/`, доставка — общий скрипт ниже.
 
-`skills/codex/<name>/` и `skills/claude/<name>/` — tracked projections owner-а.
-`~/.codex/skills/<name>/` и `~/.claude/skills/<name>/` — installed projections
-следующего уровня. Их не редактируют напрямую.
+| Пакет | Примечание |
+| --- | --- |
+| `112-learning-mode` | истории нет |
+| `123-explain` | истории нет |
+| `1agent-steering` | |
+| `1code-router` | до 2026-10-30 — `1readable-code` |
+| `1deep-agents` | |
+| `1docs-write` | |
+| `1document-system` | |
+| `1folder-tree` | |
+| `1goal` | |
+| `1google-drive-archive` | |
+| `1illustrations-and-charts` | |
+| `1instruction-authoring` | |
+| `1local-rules` | |
+| `1md-search` | |
+| `1product-shaping` | |
+| `1skill-creation` | |
+| `1use-principles` | |
+| `1work-artifacts` | |
+| `1write-as-me` | истории нет; образцы стиля — `_workspace/work-artifacts/2026-10-29-стиль-письма-владельца/` в Subfrost |
+| `1writing-rule` | |
 
-## Сняты 2026-10-30 — переход на систему Matt Pocock
+## Раздельные runtime owners
 
-Владелец перешёл на плагин `mattpocock-skills`; пересекавшиеся скилы сняты
-целиком, установленных копий нет.[^matt]
+| Пакет | Владельцы | Доставка |
+| --- | --- | --- |
+| `1t3` | `skills/claude/1t3/`, `skills/codex/1t3-codex/` | общий скрипт по имени каждого |
+| `1orchestration` | `skills/{claude,codex}/1orchestration/` | общий скрипт |
+| `1fresh-eyes` | `skills/{claude,codex}/1fresh-eyes/`; продуктовая пара — у Claude owner, не устанавливается | явный manifest из `skills/1fresh-eyes/`; профиль `agents/expansionist.{md,toml}` ещё и в `~/.{claude,codex}/agents/` |
+| `1smart-simple` | tracked owner нет: правда — `~/.{claude,codex}/skills/1smart-simple/` | вручную |
 
-- `1planning` → `/to-spec`, `/to-tickets`, `/wayfinder`; история — `skills/1planning/`.
-- `1interview-tool` → `/grill-with-docs`, `/grill-me`, `/to-questionnaire`;
-  история — `skills/1interview-tool/`.
-- `1context-refactor` → `/retro`; история — `skills/1context-refactor/`.
-- `1findings` (tracked owner не было) — история `skills/1findings/`.
+## Product owners
+
+`1chat-recall/` и `1handoff/` здесь владеют только продуктовой парой
+`product-frame*.md`; поведение — у их runtime `SKILL.md`. Runtime-деревья
+`1chat-recall` расходятся намеренно (`allowed-tools`, переменные сессии,
+пути, имя агента, тесты): правь оба адресно, файлы между ними не копируй —
+копия runtime-теста уже стирала проверки Codex.
+
+## Сняты
+
+- 2026-10-30, переход на плагин `mattpocock-skills`[^matt]: `1planning` →
+  `/to-spec`, `/to-tickets`, `/wayfinder`; `1interview-tool` →
+  `/grill-with-docs`, `/grill-me`, `/to-questionnaire`; `1context-refactor` →
+  `/retro`; `1findings`.
+- `1hermes` — 2026-10-21, `1index` — 2026-10-24.
+
+История каждого — `skills/<имя>/`.
 
 [^matt]: [Слова владельца, 2026-10-30](../../_ops/chat-recall/2026-10-30-143023-claude-20b43aed.md#recall-a4f0045b2c6f4cd783ba8618dd356655).
 
-## Product Owners
-
-`1chat-recall/` и `1handoff/` владеют только общей продуктовой
-правдой `product-frame*.md` — Frame и, где она уже существует, Principles.
-Они не становятся source owner-ами runtime package и не входят в projection
-sync. Поведение остаётся у tracked или live `SKILL.md`; при расхождении product
-intent и runtime нужен явный reconcile, а не копия пары в оба runtime.
-
-**Их runtime-деревья расходятся намеренно, и файлы между ними не копируются.**
-У `1chat-recall` различаются `allowed-tools`, переменные сессии, пути запуска,
-имя агента и runtime-тесты. Поиск выполняет сам рабочий агент в обоих рантаймах
-(решение владельца 2026-09-14). Правь оба дерева адресно: копирование
-runtime-теста целиком уже стирало Codex-специфичные проверки.
-
-`1hermes` снят 2026-10-21 после удаления Hermes. История пакетов и прежняя
-продуктовая пара — [`../1hermes/README.md`](../1hermes/README.md).
-
-`1index` снят 2026-10-24 вместе с концепцией INDEX-файлов. История пакетов и
-прежние принципы — [`../1index/README.md`](../1index/README.md).
-
 ## Синхронизация
 
-После правки source owner-а передай имена изменённых пакетов позиционными
-аргументами. Например, для текущей группы:
-
 ```bash
-python3 skills/shared/sync_simple_projections.py \
-  1product-shaping 1use-principles --write --install
-python3 skills/shared/sync_simple_projections.py \
-  1product-shaping 1use-principles --check
+python3 skills/shared/sync_simple_projections.py <имя> [<имя> …] --write --install
+python3 skills/shared/sync_simple_projections.py <имя> [<имя> …] --check
 ```
 
-Generic script собирает все portable files и непересекающуюся runtime delta.
-Он отказывается удалять unexpected projection files: их provenance сначала
-разрешается явно.
-
-Special-manifest скрипт `1skill-architect/sync_projections.py` вышел из
-обращения вместе со скилом; он лежит в
-`skills/1skill-architect/shared-owner-2026-08-08/`.
-
-Special-manifest скрипт копирует явный manifest и удаляет только названные
-obsolete runtime-файлы. Неизвестные лишние файлы он не удаляет: `--check`
-останавливается, чтобы projection не стала скрытым вторым owner-ом.
+Скрипт собирает все portable-файлы и непересекающуюся runtime-дельту.
+Лишние файлы в проекциях он не удаляет: их происхождение сначала решают
+явно. Special-manifest скрипт `1skill-architect/sync_projections.py` выведен
+из обращения и лежит в `skills/1skill-architect/shared-owner-2026-08-08/`.
