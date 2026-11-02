@@ -106,7 +106,7 @@ description: >-
 
 | Инструмент | Что | Где подробности |
 |---|---|---|
-| `gh` | `repo read-file`/`read-dir` без клона, `--attach 'file.png#alt'` в issue/PR, `pr checkout --worktree`, `skill`, `agent-task` | `gh <cmd> --help`, [releases](https://github.com/cli/cli/releases) |
+| `gh` | `repo read-file`/`read-dir <путь> -R owner/repo` без клона (репозиторий вторым аргументом — ошибка `accepts at most 1 arg(s)`), `--attach 'file.png#alt'` в issue/PR, `pr checkout --worktree`, `skill`, `agent-task` | `gh <cmd> --help`, [releases](https://github.com/cli/cli/releases) |
 | `vercel` 65 | `ci` — прогоны и логи CI, `deploy --verify`, `agent init` — AGENTS.md, `api`, `sandbox`, `traces`; `logs` по умолчанию runtime, CDN — `logs requests` | `vercel help <cmd>` |
 | Python 3.15 | UTF-8 по умолчанию — `encoding=` в `open()` не обязателен; `lazy import` | [What's New](https://docs.python.org/3.15/whatsnew/3.15.html) |
 
