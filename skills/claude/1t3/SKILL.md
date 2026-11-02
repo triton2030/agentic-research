@@ -50,8 +50,9 @@ owner sees what his quota went on; other agents' threads stay untouched.
   ledger of his quota.
 - Always set `runtimeMode`: otherwise the project default applies, and at an
   approval level the thread waits for consent nobody gives.
-- Codex: `serviceTier: "default"` — the owner does not pay for Fast
-  (31.10.2026); changing it mid-turn interrupted the turn.
+- Codex `serviceTier`: `"default"` for `gpt-6.1-sol`; `"priority"` (Fast)
+  for `gpt-6.1-terra`, which is cheap (owner, 2026-11-02). Changing it
+  mid-turn interrupted the turn.
 - The model name isn't validated: a wrong one fails the first turn within
   seconds with `does not exist or you lack access`. The model an agent names
   in its reply proves nothing.
@@ -99,8 +100,11 @@ and per the docs Meta may train on it by default.
 | Grok | X search; audio, video, PDF by its tool description | yes | skills only | not measured |
 | Codex | native diff review, reading your transcript — the bridge `~/Documents/GitHub/agentic-research/experiments/codex-bridge` does | yes | with his personal rules and a tool that calls Claude | taken into the same turn |
 
-- Claude threads are launched only from Codex; from Claude Code use your own
-  subagents.
+- From Claude Code, a Claude thread (`instanceId: "claudeAgent"`, option
+  `effort`) is for Opus at an effort other than yours: your own subagent
+  inherits your effort, a thread sets it exactly, and both spend the same
+  Claude subscription (owner, 2026-11-02; launched and ran from Claude Code
+  that day). Other Claude work stays with your own subagents.
 - Argon is expensive and has its own weekly quota: text writing stays on
   `gemini-3.8-flash-high`. Flash asserts where sources are silent.
 - Grok finds recent events only by web search — ask for dated sources. A long
