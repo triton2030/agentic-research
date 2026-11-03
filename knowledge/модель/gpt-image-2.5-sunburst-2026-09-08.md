@@ -82,6 +82,11 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `a few large, clean, smooth facets` | Грани крупнее, но форма всё ещё сложная | v37, v38 |
 | `Clear ice that bends and refracts the light, with a thin white frost along its edges` | Преломления и белая изморозь по краям; лёд остаётся гладким | v37, v39, v41 |
 | `its surface lightly dusted with frost, cold vapor drifting off it` | Иней и пар — холод читается сильнее всего, но фактуры больше | v38, v40, v42 |
+| Убрать строку фона `behind it, a vast glacier …` | Лёд занимает больше кадра; Альпы от `Swiss` всё равно проступают | v70–v74 против v62 |
+| `a giant cracked glacier` | Ледяной утёс во весь кадр, больше скалы, драматично | v70 |
+| `a vast face of ancient glacier ice` | Спокойная стена льда во весь кадр | v72 |
+| `a colossal shard of clear translucent ice` | Гранёный светящийся кристалл | v74 |
+| `a giant block … levitating silently above the frozen ground` | Парящая длинная плита, видна целиком — сюрреалистичный ключевой образ | v71 |
 | `one compact standalone object` | Куб; пустое место — горы и озеро | v27 |
 | `its faces cut into large flat planes with clean straight edges` | Брус с ровной гранью | v21 |
 
