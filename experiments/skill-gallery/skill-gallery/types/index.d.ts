@@ -7,8 +7,7 @@ declare module 'claude-code' {
       favorites: Shaped<string[]>
       expanded: Shaped<string[]>
       agents: Shaped<SkillEntry[]>
-      // The folder open in the row above the prompt.
-      openFolder: string | null
+      // Picks from the dropdowns in the row above the prompt.
       picks: number
     }
   }

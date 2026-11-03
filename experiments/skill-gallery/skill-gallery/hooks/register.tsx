@@ -38,16 +38,9 @@ const expanded = atom({ plugin: 'skill-gallery', key: 'expanded' } as const, [],
 const agents = atom({ plugin: 'skill-gallery', key: 'agents' } as const, [], {
   shape: 'agents-1',
 })
-const openFolder = atom(
-  { plugin: 'skill-gallery', key: 'openFolder' } as const,
-  null as string | null,
-)
-// Counts picks from a folder's dropdown, so each pick draws the dropdown anew,
-// back on its title.
+// Counts picks from the folders' dropdowns, so each pick draws them anew,
+// back on their titles.
 const picks = atom({ plugin: 'skill-gallery', key: 'picks' } as const, 0)
-
-// PROBE: this folder is drawn as a Select, to see how the desktop draws one.
-const SELECT_FOLDER = 'Мои'
 
 // Skills, plugin commands and built-in commands; MCP prompts are left out.
 async function refresh($: EngineInterface) {
@@ -130,9 +123,9 @@ async function openPane($: EngineInterface) {
   await $.ui.open({ id: PANE, title: TITLE })
 }
 
-// A second click on the open folder closes it.
-async function toggleFolder($: EngineInterface, title: string) {
-  await update($, openFolder, current => (current === title ? null : title))
+// A folder's name in the row above the prompt, short so the row fits on one line.
+function folderLabel(title: string) {
+  return title.endsWith('-skills') ? title.slice(0, -'-skills'.length) : title
 }
 
 // The folders in the row above the prompt: every section but Избранное.
@@ -166,7 +159,7 @@ function agentName(id: string) {
   return id.startsWith(AGENT_PREFIX) ? id.slice(AGENT_PREFIX.length) : id
 }
 
-type Item = { id: string; label: string; description: string }
+type Item = { id: string; label: string }
 type Section = { title: string; items: Item[] }
 
 function sectionsOf(
@@ -185,7 +178,6 @@ function sectionsOf(
     add(title, {
       id: skill.name,
       label: isPlugin ? shortName(skill.name) : skill.name,
-      description: skill.description,
     })
   }
 
@@ -199,7 +191,7 @@ function sectionsOf(
   }
 
   const agentItems = agentList
-    .map(a => ({ id: `${AGENT_PREFIX}${a.name}`, label: a.name, description: a.description }))
+    .map(a => ({ id: `${AGENT_PREFIX}${a.name}`, label: a.name }))
     .filter(item => !favs.includes(item.id))
 
   const pluginTitles = [...groups.keys()]
@@ -210,7 +202,7 @@ function sectionsOf(
   const push = (title: string, items: Item[] | undefined) => {
     if (items && items.length > 0) result.push({ title, items })
   }
-  push(FAVORITES, favs.map(id => ({ id, label: agentName(id), description: '' })))
+  push(FAVORITES, favs.map(id => ({ id, label: agentName(id) })))
   push(MINE, groups.get(MINE))
   push(COMMANDS, groups.get(COMMANDS))
   push(AGENTS, agentItems)
@@ -247,73 +239,35 @@ export const register: Register = on => {
     return result
   })
 
-  // The row above the prompt: one button per folder; the open folder lists
-  // all its items under the row, and the band scrolls them as any tall tree.
+  // The row above the prompt: one dropdown per folder. The desktop opens it as
+  // a small menu of its own, scrolled on its own, upward where room is short.
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey) return next(e)
+    const table = $.ui.resolve(e)
+    // Every surface that raises the band draws a Select; the check is for the types.
+    if (!('Select' in table)) return next(e)
     const all = await folders($)
     if (all.length === 0) return next(e)
-    const table = $.ui.resolve(e)
-    const { Box, Button, Text } = table
-    // Mobile draws no Select; the folder stays a button there.
-    const Select = 'Select' in table ? table.Select : undefined
-    const opened = await read($, openFolder)
-    const folder = all.find(f => f.title === opened)
+    const { Box, Select } = table
     const pickCount = await read($, picks)
 
     return (
-      <Box flexDirection="column" gap="xs">
-        <Box flexDirection="row" flexWrap="wrap" columnGap={2}>
-          {all.map(f =>
-            Select && f.title === SELECT_FOLDER ? (
-              <Select
-                key={`select:${f.title}:${pickCount}`}
-                value=""
-                options={[
-                  { value: '', label: `${f.title} ${f.items.length}` },
-                  ...f.items.map(item => ({ value: item.id, label: item.label })),
-                ]}
-                onSelect={async (id: string) => {
-                  if (!id) return
-                  await insertItem($, id)
-                  await update($, picks, n => n + 1)
-                }}
-              />
-            ) : (
-            <Button
-              key={`folder:${f.title}`}
-              plain
-              onPress={() => toggleFolder($, f.title)}
-            >
-              <Text bold={f === folder}>
-                {f === folder ? '▾ ' : ''}
-                {f.title}
-              </Text>
-              <Text color="inactive"> {f.items.length}</Text>
-            </Button>
-            ),
-          )}
-        </Box>
-        {folder && (
-          <Box flexDirection="column">
-            {folder.items.map(item => (
-              <Button
-                key={`item:${item.id}`}
-                plain
-                onPress={async () => {
-                  await insertItem($, item.id)
-                  await update($, openFolder, () => null)
-                }}
-              >
-                <Text>{item.label}</Text>
-                {/* The desktop ignores dimColor inside a Button; a theme color holds. */}
-                <Text color="inactive" wrap="truncate-end">
-                  {item.description ? `  ${item.description}` : ''}
-                </Text>
-              </Button>
-            ))}
-          </Box>
-        )}
+      <Box flexDirection="row" flexWrap="wrap" columnGap={1}>
+        {all.map(f => (
+          <Select
+            key={`folder:${f.title}:${pickCount}`}
+            value=""
+            options={[
+              { value: '', label: `${folderLabel(f.title)} ${f.items.length}` },
+              ...f.items.map(item => ({ value: item.id, label: item.label })),
+            ]}
+            onSelect={async (id: string) => {
+              if (!id) return
+              await insertItem($, id)
+              await update($, picks, n => n + 1)
+            }}
+          />
+        ))}
       </Box>
     )
   })
