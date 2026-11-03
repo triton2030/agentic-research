@@ -51,6 +51,8 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `soft grey and pale turquoise` + `dense fog` без слова о темноте | Белёсый туманный день | v8–v12 |
 | `Softly lit, calm and atmospheric` | Светлее и воздушнее, угрозы меньше | v26 |
 | `Soft, even light with no harsh shadows.` | Почти без эффекта | v25 |
+| `The whole picture is low in contrast: muted tones, no deep blacks, no bright highlights, no visible sun.` | Контраст резко ниже, всё в дымке, солнца нет — сильный эффект одной фразы | v66 против v62 |
+| `Overcast, diffused light with no visible sun.` | Снимает солнце, которое приносят слова о чистоте | v67, v68 |
 
 ### Палитра и туман
 
@@ -93,6 +95,7 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `glowing hot red-orange`, `molten` | Лава с тёмным камнем; угроза | v3, v6, v13 |
 | `as if a fire burns at its core` | Золото по всей толще, не красное | v14 |
 | `like an ember frozen in the ice` | Раскалённое ядро внутри | v17 |
+| `…glowing hot red-orange, the only warm color and the only strong accent in the picture` | Трещина тоньше и чище, остальное спокойнее — иерархия через «единственный» | v67 |
 | `a single thin crack` вместо `a deep crack` | Одна тонкая трещина, лавы и камня меньше — картинка проще | v36 против v33 |
 | Убрать `, lighting the ice from within` после строки трещины | Почти без эффекта | v34 против v33 |
 | `warm amber and red light pouring from a narrow crack in its heart` | Центральная янтарно-красная трещина | v16, v18–v20 (4) |
@@ -140,6 +143,7 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | --- | --- | --- |
 | `Composition: all text on the left …` без слов о фоне | Сама сдвигает предмет вправо и кладёт туман за текст | v27–v29 |
 | Пункты списком | Сама добавляет иконки или акцентные черты | v7, v27–v29 |
+| Бриф по разделам с подписями (`Purpose:`, `Mood:`, `Light and color:`, `Scene:`, `Text:`, `Style:`) против того же смысла прозой | Почти та же картинка, но пункты из раздела `Text` получили иконки | v68 против v67 |
 | `a calm empty corner for a logo` | Обычно оставляет спокойный угол | v1–v26 |
 
 > [!question] Что пока не проверено
