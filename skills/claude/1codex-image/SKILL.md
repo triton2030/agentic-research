@@ -10,8 +10,8 @@ description: >-
 
 ## How to work with the model
 
-Images are made by OpenAI GPT Image with the owner's API key. Recraft only
-when he names it (`1recraft`), a Codex thread only when he names it (`1t3`).
+Images are made by one model only — `gpt-image-2.5-sunburst-2026-09-08`, the
+owner's choice — with his API key. Recraft only when he names it (`1recraft`), a Codex thread only when he names it (`1t3`).
 
 The model thinks: steer it like an agent, with goals, not drawing orders. Its
 job is to work out how to meet the goal — order, size, accents, cards,
@@ -34,7 +34,7 @@ is whether the goal is met. An image that ships — a banner, a post — gets it
 text checked letter by letter and no invented claims about the product.
 
 What each phrase did, next to what and in how many runs, is kept in
-`~/Documents/GitHub/agentic-research/knowledge/модель/gpt image 2.5.md`. Its
+`~/Documents/GitHub/agentic-research/knowledge/модель/gpt-image-2.5-sunburst-2026-09-08.md`. Its
 strongest lessons (2026-11):
 
 - Nouns decide, adjectives tune, bans weigh least: `a block of translucent
@@ -163,15 +163,14 @@ uv run -q --with pillow --with numpy --with scipy python -I $S/slice_grid.py SHE
 ```
 
 `gen.sh` saves the image beside its brief, never overwrites and prints the
-cost. Defaults: `gpt-image-2.5-sunburst-2026-09-08`, `QUALITY=high`,
+cost; the model is fixed inside it. Defaults: `QUALITY=high`,
 `SIZE=2048x1152` (`1152x2048`, `2048x2048`; an edit keeps the source's ratio,
 edges multiples of 16); `FORMAT=webp` is lighter.
 
 - `high` ≈ $0.04, `max` ≈ $0.17, 4K `max` ≈ $0.40. Raise quality only for an
   unmet need; ask the owner, naming the sum, before `max`, 4K or a batch over
   $1. No seed or reasoning setting exists.
-- Drafts: `MODEL=gpt-image-2.5-flare` (garbled a UI label once) or
-  `QUALITY=low`.
+- Drafts: `QUALITY=low`.
 - API fails: tell the owner and offer a Codex thread; never switch yourself —
   Codex spends his subscription.
 

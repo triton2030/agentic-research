@@ -1,15 +1,14 @@
 # Transparent background
 
-Probed on the 2.5 models; `gpt-image-2` has it in preview since 2026-08-20
-(OpenAI changelog), unprobed here. The model never cuts an object out — it
+Probed on this skill's model. It never cuts an object out — it
 redraws it: shape and colors match, fine texture does not. Choose the route by
 what you are given:
 
 | Case | Route |
 |---|---|
 | flat graphic on a plain background: logo, icon, asset with exact colors | no model: `uv run -q --with pillow python -I ~/.codex/skills/.system/imagegen/scripts/remove_chroma_key.py --input IN.png --out OUT.png --auto-key border` — free, pixels unchanged; the background color must not occur inside the object, or it turns into holes |
-| a photo, even on a studio background | edit with a 2.5 model and `BACKGROUND=transparent`; tell the owner before the call that the object will be redrawn |
-| a new object, hair, fur, fluff | generate with a 2.5 model and `BACKGROUND=transparent` |
+| a photo, even on a studio background | edit with `BACKGROUND=transparent`; tell the owner before the call that the object will be redrawn |
+| a new object, hair, fur, fluff | generate with `BACKGROUND=transparent` |
 | glass, a clear bottle | no route cuts it cleanly: generate it on its final background |
 
 The parameter alone does not work: a described scene eats the transparency,

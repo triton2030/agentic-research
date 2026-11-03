@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# Generate or edit images with OpenAI GPT Image from saved briefs, in parallel.
+# Generate or edit images with gpt-image-2.5-sunburst-2026-09-08 (the only model) from saved briefs, in parallel.
 # Usage: gen.sh NAME [NAME ...]  — reads $DIR/NAME.prompt.md, writes $DIR/NAME.$FORMAT
 # Env:   DIR        default <git root or cwd>/_workspace/codex-image/<today>
-#        MODEL      default gpt-image-2.5-sunburst-2026-09-08
 #        QUALITY    low | medium | high (default) | xhigh | max
 #        SIZE       default 2048x1152; edges multiples of 16
 #        FORMAT     png (default) | webp | jpeg
@@ -10,7 +9,7 @@
 #        IMAGES     "target.png ref.png" — edit instead of generate; order = Image 1, Image 2; no spaces in paths
 set -euo pipefail
 
-MODEL=${MODEL:-gpt-image-2.5-sunburst-2026-09-08}
+readonly MODEL=gpt-image-2.5-sunburst-2026-09-08   # the owner's only model; not overridable
 QUALITY=${QUALITY:-high}
 SIZE=${SIZE:-2048x1152}
 FORMAT=${FORMAT:-png}
@@ -19,7 +18,7 @@ IMAGES=${IMAGES:-}
 DIR=${DIR:-"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/_workspace/codex-image/$(date +%F)"}
 KEY_FILE="$HOME/.config/openai/api-key"
 
-[ $# -ge 1 ] || { sed -n '2,11p' "$0"; exit 2; }
+[ $# -ge 1 ] || { sed -n '2,10p' "$0"; exit 2; }
 [ -r "$KEY_FILE" ] || { echo "no API key at $KEY_FILE" >&2; exit 1; }
 
 auth() { printf 'Authorization: Bearer %s\n' "$(<"$KEY_FILE")"; }

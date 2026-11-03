@@ -54,3 +54,10 @@
 
 [^agent]: `_ops/chat-recall/2026-11-03-124247-claude-f2fffc87.md#recall-256e3198252d4f16b3f24dd3c416c66f`
 [^lessons]: `_ops/chat-recall/2026-11-03-124247-claude-f2fffc87.md#recall-fe6350099c734beca06fe445eb370e92`
+
+## v4.1 → v4.2: одна модель
+
+Владелец: «gpt image 2.5 вообще забудем, будем использовать только вот эту которую я выбрал» — снимок `gpt-image-2.5-sunburst-2026-09-08`[^only].
+Модель закреплена в `gen.sh` (`readonly`, переменная `MODEL` не действует); из тела и `transparent.md` сняты Flare, «2.5 models» и `gpt-image-2`; файл уроков переименован в `knowledge/модель/gpt-image-2.5-sunburst-2026-09-08.md`.
+
+[^only]: `_ops/chat-recall/2026-11-03-124247-claude-f2fffc87.md#recall-2c14511185b54b3096b45c105e6ec33b`
