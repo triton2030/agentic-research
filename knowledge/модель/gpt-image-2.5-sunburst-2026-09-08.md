@@ -57,7 +57,10 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `cool steel blue and soft turquoise` | Синее и холоднее | v24–v26 |
 | `fading into soft mist` | Лёгкая дымка, фон остаётся резким | v1 |
 | `in dense fog` | Туман по краям, деталей в центре не меньше | v21–v23 |
-| `wrapped in thick soft fog` | Много тумана | v24–v26 |
+| `wrapped in thick soft fog` | Много тумана, но клубами, как облака | v24–v26 |
+| `in a thin, even haze that softens everything behind the ice` | Ровная дымка в фоне; у края ещё клубится | v31 |
+| `with low, flat ground fog lying still around its base` | Плоский туман только у подножия; выше ясно, фон детальнее | v32 |
+| `veiled in a smooth, uniform mist, with no billowing clouds` | Ровная мгла без клубов; спокойствие перешло и на акцент — трещина тише | v33 |
 
 ### Материал и форма предмета
 
