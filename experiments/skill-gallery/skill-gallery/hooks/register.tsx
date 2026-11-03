@@ -123,14 +123,19 @@ async function openPane($: EngineInterface) {
   await $.ui.open({ id: PANE, title: TITLE })
 }
 
+// Folders the owner keeps out of the row above the prompt; the pane still lists them.
+const HIDDEN_IN_ROW = new Set([AGENTS, REST, 'plugin-dev'])
+
 // A folder's name in the row above the prompt, short so the row fits on one line.
 function folderLabel(title: string) {
   return title.endsWith('-skills') ? title.slice(0, -'-skills'.length) : title
 }
 
-// The folders in the row above the prompt: every section but Избранное.
+// The folders in the row above the prompt: every section but Избранное and the hidden ones.
 async function folders($: EngineInterface) {
-  return sectionsOf(await read($, skills), await read($, agents), [])
+  return sectionsOf(await read($, skills), await read($, agents), []).filter(
+    f => !HIDDEN_IN_ROW.has(f.title),
+  )
 }
 
 // A skill or command goes in as /name, an agent as its @agent-name mention.

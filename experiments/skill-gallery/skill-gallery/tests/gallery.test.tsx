@@ -126,8 +126,10 @@ test('the row above the prompt has a dropdown per folder; a pick inserts and sta
     const ui = await $.ui.mount({ ...BAND, surface })
     expect(await ui.find({ key: 'folder:Мои:0' })).toBeDefined()
     expect(await ui.find({ key: 'folder:Команды:0' })).toBeDefined()
-    expect(await ui.find({ key: 'folder:Остальное:0' })).toBeDefined()
     expect(await ui.find({ key: 'folder:Избранное:0' })).toBeUndefined()
+    // Kept out of the row for good.
+    expect(await ui.find({ key: 'folder:Остальное:0' })).toBeUndefined()
+    expect(await ui.find({ key: 'folder:Агенты:0' })).toBeUndefined()
     await ui.unmount()
   }
 
@@ -135,9 +137,9 @@ test('the row above the prompt has a dropdown per folder; a pick inserts and sta
   await ui.select({ key: 'folder:Мои:0', value: 'zeta' })
   // Each pick draws fresh dropdowns, back on the folders' titles.
   expect(await ui.find({ key: 'folder:Мои:1' })).toBeDefined()
-  await ui.select({ key: 'folder:Остальное:1', value: 'pk:beta' })
+  await ui.select({ key: 'folder:Команды:1', value: 'help' })
   await ui.unmount()
-  expect(fills).toEqual(['/zeta ', '/pk:beta '])
+  expect(fills).toEqual(['/zeta ', '/help '])
 })
 
 test('a plugin folder drops -skills from its name in the row', async ($, on) => {
@@ -256,9 +258,10 @@ test('agents the engine offers get their section and insert as @agent-name', asy
   ])
 
   const band = await $.ui.mount({ ...BAND, surface: 'desktop' })
-  await band.select({ key: 'folder:Агенты:0', value: '@agent-Explore' })
+  // Agents stay out of the row above the prompt.
+  expect(await band.find({ key: 'folder:Агенты:0' })).toBeUndefined()
   await band.unmount()
-  expect(fills).toEqual(['@agent-Explore ', '@agent-Explore '])
+  expect(fills).toEqual(['@agent-Explore '])
 })
 
 test('a star keeps what another session added meanwhile', async ($, on) => {
