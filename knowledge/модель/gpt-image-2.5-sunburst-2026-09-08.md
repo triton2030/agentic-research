@@ -111,6 +111,9 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `corporate design discipline — generous negative space, strict alignment, …` | Меняет раскладку: строгая левая сетка текста | v48 |
 | `the calm, premium look of a private bank's investor presentation` | Меняет шрифт на узкий, в духе DIN | v49 |
 | `the cover of a Swiss bank's annual report, calm and premium` | Светлый редакционный вид, много пустого места, мелкий аккуратный подзаголовок | v50 |
+| `Swiss`, `Geneva`, `Zurich` в фразе стиля | Рисует буквально: заснеженные Альпы в фоне | v56, v57, v59, v60 (4) |
+| `the restraint of Swiss private banking — one monumental image, vast empty space, small precise typography, muted colors` | Самый сдержанный и чистый вид, мелкая точная типографика, почти без фона | v58 |
+| `an expensive, award-winning annual report design` | Драматичнее: ярче трещина, крупнее заголовок | v60 |
 | `Create a social post image for X` против `Create an image` | Почти одинаково при основе v26: драмы от «поста» не видно | v26 против v55 |
 | `Create the cover of an annual report` | Светлый редакционный вид, много пустого места, мелкие подписи — как у `annual report` в фразе стиля | v53; v50 (2) |
 | `Create a poster` | Заголовок крупнее и шире | v54 |
