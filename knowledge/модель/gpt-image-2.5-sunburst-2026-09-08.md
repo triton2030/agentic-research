@@ -111,7 +111,11 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `corporate design discipline — generous negative space, strict alignment, …` | Меняет раскладку: строгая левая сетка текста | v48 |
 | `the calm, premium look of a private bank's investor presentation` | Меняет шрифт на узкий, в духе DIN | v49 |
 | `the cover of a Swiss bank's annual report, calm and premium` | Светлый редакционный вид, много пустого места, мелкий аккуратный подзаголовок | v50 |
-| `Create a social post image for X` | Сама задаёт жанр поста, который цепляет (наблюдение владельца, не проверено) | — |
+| `Create a social post image for X` против `Create an image` | Почти одинаково при основе v26: драмы от «поста» не видно | v26 против v55 |
+| `Create the cover of an annual report` | Светлый редакционный вид, много пустого места, мелкие подписи — как у `annual report` в фразе стиля | v53; v50 (2) |
+| `Create a poster` | Заголовок крупнее и шире | v54 |
+| `Create a key visual` | Сама добавляет иконки к пунктам | v51 |
+| `Create a hero image for a fintech website` | Почти как v26 | v52 |
 | `Nothing else in the scene: no rocks, no mountains, only the ice in an empty dark misty space.` | Пустой тёмный фон | v18 |
 | `The restraint of a premium tech brand campaign … no drama` | Без эффекта | v20 |
 
