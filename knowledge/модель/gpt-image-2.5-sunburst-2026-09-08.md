@@ -111,6 +111,8 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `warm amber and red light pouring from a narrow crack in its heart` | Центральная янтарно-красная трещина | v16, v18–v20 (4) |
 | `glowing bright golden-amber` | Золотые жилы, тепло без угрозы | v24 |
 | `energy` без цвета | Голубые молнии | v7 |
+| `a deep crack inside the ice, with red-orange light coming from far within` вместо `…glowing hot red-orange, lighting the ice from within` | Тонкая светящаяся линия, лавы и тёмного камня заметно меньше — спокойнее; глубины за поверхностью не видно | v79 против v73 |
+| `glowing warm red-orange` вместо `glowing hot red-orange` | Почти без эффекта: лава остаётся — её несёт `glowing` у трещины, а не `hot` | v80 против v73 |
 | `something extremely hot deep inside` без цвета | Мягкое золотисто-янтарное свечение вместо лавы, лёд прозрачнее, появилось солнце — добрее | v78 против v75 |
 
 ### Жанр и сцена
@@ -120,6 +122,8 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `Shot like a premium product photograph: one object, soft studio light, a seamless dark background` | Пустой фон, студийный свет, предмет по центру | v19 |
 | `premium tech brand key visual`, `A clean minimalist 3D render.` рядом с прямым кадром | Почти без эффекта | v22, v23 |
 | `A clean minimalist Cinema 4D render with simple shapes.` рядом с тем же кадром | Заметно: прямые рёбра, чистый блок, тонкая трещина — имя программы сильнее слова «3D» | v41, v42 |
+| `A clean minimalist 3D render with soft subsurface scattering.` | Свет акцента расходится в толщу полупрозрачного льда вокруг трещины; заодно оранжевого и лавы больше | v81 против v73 |
+| `A photorealistic large-format photograph.` вместо `A clean minimalist 3D render.` | Мокрая фактура, пузыри, капли, море; контраст и драма выше — природное фото вместо чистого рендера | v82 против v73 |
 | `the calm key visual of a modern fintech brand` вместо `a calm, premium corporate look` | Почти без изменений: чуть темнее и контрастнее | v46 |
 | `calm and restrained like a slide from an Apple keynote` | Светлее и воздушнее | v47 |
 | `corporate design discipline — generous negative space, strict alignment, …` | Меняет раскладку: строгая левая сетка текста | v48 |
