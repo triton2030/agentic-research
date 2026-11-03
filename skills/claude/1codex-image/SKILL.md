@@ -11,12 +11,12 @@ description: >-
 ## How to work with the model
 
 Images are made by one model only — `gpt-image-2.5-sunburst-2026-09-08`, the
-owner's choice — with his API key. Recraft only when he names it (`1recraft`), a Codex thread only when he names it (`1t3`).
+owner's choice — with his API key. Recraft only when he names it (`1recraft`),
+a Codex thread only when he names it (`1t3`).
 
-The model thinks: steer it like an agent, with goals, not drawing orders. Its
-job is to work out how to meet the goal — order, size, accents, cards,
-colors — and that is what the owner uses it for: it is his designer. A brief
-is built from modules:
+The model thinks: steer it like an agent, with goals, not drawing orders —
+working out order, size, accents and colors is the design work the owner
+uses it for. A brief is built from modules:
 
 - task — what the image is, what it is for, what must be in it, as a list;
 - style — the approved look in one paragraph; it carries over word for word
@@ -24,9 +24,10 @@ is built from modules:
 - the owner's invariants — what he pinned or reacted to, in the cheapest
   words.
 
-Every word pulls a meaning with it, and the strongest one spreads over the
-whole picture. So an invariant rewrites the brief: find the words that pull
-against it and rewrite them; never append a line on top.
+The modules leak: the opening phrase and any place or genre word set style
+too. Every word pulls a meaning with it, and the strongest one spreads over
+the whole picture. So an invariant rewrites the brief: find the words that
+pull against it and rewrite them; never append a line on top.
 
 Two kinds of result. Designs of pages, screens and concepts are an idea
 generator: invented labels and a wrong text color are expected, and the test
@@ -34,27 +35,32 @@ is whether the goal is met. An image that ships — a banner, a post — gets it
 text checked letter by letter and no invented claims about the product.
 
 What each phrase did, next to what and in how many runs, is kept in
-`~/Documents/GitHub/agentic-research/knowledge/модель/gpt-image-2.5-sunburst-2026-09-08.md`. Its
-strongest lessons (2026-11):
+`~/Documents/GitHub/agentic-research/knowledge/модель/gpt-image-2.5-sunburst-2026-09-08.md`.
+Its strongest lessons (2026-11, about 80 banners):
 
-- Nouns decide, adjectives tune, bans weigh least: `a block of translucent
-  ice` gave an ice object; `iceberg`, `glacier` gave rocky landscape.
-- A genre phrase is a strong lever — `a premium product photograph` brought
-  an empty background, studio light and one centred object — unless another
-  line already fixes the framing.
-- It reads literally: `like an ember` drew an ember; `the ice holds the fire`,
-  `no drama` changed nothing visible.
-- The mood follows the main accent's color: red-orange lava read as menace,
-  golden-amber as warmth.
-- Strength is a ladder of words: `barely visible` → `quiet glow` → `narrow
-  crack` → `seam` → `molten` (lava).
-- An open slot gets a default: no light word — daylight; no typeface —
-  decorative letters; no background — scenery; a list of points — icons.
-- Quoted text comes out exact, Russian too; a number it must compute may not.
+- Nouns decide form and material, adjectives tune, bans weigh least: `a block
+  of translucent ice` gave an ice object, `glacier` gave rock, `levitating`
+  the whole object floating.
+- Genre and place words bring their typical picture wherever they stand: `the
+  cover of an annual report` — light, editorial, small type; `poster` — a big
+  headline; `Swiss` — the Alps, three times out of three.
+- It reads literally: a simile draws its image (`like an ember`); abstract
+  wishes (`no drama`, `the ice holds the fire`) change nothing visible.
+- The accent's color sets the mood — red lava read as menace, golden-amber as
+  warmth; its strength is a ladder (`barely visible` → `quiet glow` → `narrow
+  crack` → `seam` → `molten`); `the only warm color and the only strong
+  accent` makes the rest recede.
+- One sentence can move the whole picture: `The whole picture is low in
+  contrast: muted tones, no deep blacks, no bright highlights, no visible
+  sun.` Words of purity (`pristine`, `pure`) brighten it and bring a sun.
+- Every line takes room: a background line shrinks the subject; a list or a
+  `Text:` section gets icons; an unnamed slot gets a default — daylight,
+  decorative letters, scenery.
+- Quoted text comes out exact, Russian too; a computed number may not. Across
+  repeats, what is named holds; layout, sun and background details vary.
 
-A spec — positions, pixels, a color per element — gets exactly its skeleton
-back: the same app screen came out rich from a short brief and empty from a
-spec. In the owner's experience, the longer the brief, the worse the image.
+A spec — positions, pixels, a color per element — gets its bare skeleton
+back; in the owner's experience, the longer the brief, the worse the image.
 
 ## Task
 
@@ -70,11 +76,11 @@ keeps, what he reacted to. Everything else stays the model's choice.
 
 ## When you write a brief
 
-English, 60–150 words, growing only with the number of items:
+English, 60–200 words, growing only with the number of items:
 
 1. Task: what it is and where it will be used — this sets genre and polish;
-   name the genre when it matters (`a premium product photograph`, `It should look
-   like a real, well-designed, beautiful app`).
+   name the genre when it matters (`the cover of an annual report`, `It should
+   look like a real, well-designed, beautiful app`).
 2. Style: mood, palette and, when the look depends on it, light — dark or
    bright, and its source. An approved style paragraph is reused word for
    word.
@@ -88,15 +94,16 @@ English, 60–150 words, growing only with the number of items:
 Where something sits or how many pixels it takes, write only if the owner
 dictated it, in his words.
 
-The approved banner of the series (style paragraph second):
+The owner's favorite of the series (v62):
 
 ```text
-Create a social post image for X that sums up the first week of PERMAFROST, a Bitcoin DeFi launch by Subfrost: seven days, four upgrades.
+Create the cover of an annual report that sums up the first week of PERMAFROST, a Bitcoin DeFi launch by Subfrost: seven days, four upgrades.
 
-Make it beautiful: a calm, premium corporate look. Minimal and quiet, very few details. Softly lit, calm and atmospheric, in cool steel blue and soft turquoise, wrapped in thick soft fog. Clean, translucent ice with almost no texture. A clean minimalist 3D render.
+Make it beautiful: the quiet authority of a conservative Swiss private bank that has guarded old family fortunes for generations. Serene, pristine and pure: minimal, quiet, very few details. Softly lit, calm and atmospheric, in cool steel blue and soft turquoise, wrapped in thick soft fog. Clean, translucent ice with almost no texture. A clean minimalist 3D render.
 
 It should include:
 - a giant block of clear translucent ice seen up close, filling most of the frame
+- behind it, a vast glacier on endless permafrost, fading into the mist
 - a deep crack inside the ice glowing hot red-orange, lighting the ice from within
 - the headline "PERMAFROST" as the largest element, in elegant wide-spaced white sans-serif capitals
 - "7 DAYS / 4 UPGRADES"
@@ -115,9 +122,13 @@ landscape). Reach it with the cheapest words — a new genre or noun first, one
 step on the strength ladder next, a concrete ban last, with what fills the
 space — and rewrite the lines that pull against it. The rest stays free.
 
-To explore, keep one base brief and run three variants in parallel, each
-changing one line. Run a winner twice more before trusting it, then drop
-pinned lines one at a time while the invariant holds.
+Run several variants per round in parallel, each one change away from a
+base, so every effect can be named: a line per variant, a grid for two
+questions, a removal test for a suspected word. Change a brief the owner
+liked one line at a time: its "contradictions" may be working — `pure`, fog
+and `atmospheric` made a luminous haze that an eight-line cleanup lost.
+Repeat a winner two or three times; what he liked that does not repeat — the
+layout, the sun — name in the brief or edit from that image.
 
 After a series, add to the lessons file what each phrase gave, under what it
 controls: the phrase, the effect with what it dragged along, the brief it
@@ -133,11 +144,10 @@ new one). Write the target state, then `Keep everything else
 unchanged:` and what must stay, earlier edits included.
 
 The model redraws the whole picture and drifts with each chained edit: edit
-from the last approved version, rewrite from the original when the keep-list
-outgrows the change, paste exact pixels back locally. What must stay
-identical — a face, a product label, a character, UI text — name in every
-brief, or the model "improves" it; for people add `Do not change faces,
-facial features, expressions or identity in any way`. A new screen of a live
+from the last approved version, paste exact pixels back locally. Name what
+must stay identical — a face, a product label, UI text — in every brief, or
+the model "improves" it; for people add `Do not change faces, facial
+features, expressions or identity in any way`. A new screen of a live
 product starts from a screenshot of it.
 
 | Case | Add |
@@ -162,8 +172,8 @@ $S/gen.sh <name> [<name> …]                    # parallel; IMAGES="a.png b.png
 uv run -q --with pillow --with numpy --with scipy python -I $S/slice_grid.py SHEET.png 4 4 OUT
 ```
 
-`gen.sh` saves the image beside its brief, never overwrites and prints the
-cost; the model is fixed inside it. Defaults: `QUALITY=high`,
+`gen.sh` saves the image beside its brief, never overwrites, prints the
+cost and fixes the model. Defaults: `QUALITY=high`,
 `SIZE=2048x1152` (`1152x2048`, `2048x2048`; an edit keeps the source's ratio,
 edges multiples of 16); `FORMAT=webp` is lighter.
 
@@ -178,6 +188,11 @@ edges multiples of 16); `FORMAT=webp` is lighter.
 
 Judge it by its kind. An image that ships: every item there, text letter by
 letter (a stylized A without its bar reads as Λ), no invented claims. A design
-for ideas: is the goal met. An edit: it kept what it had to. Show each image
-with its number and the lines that differ; give the file link, model,
-quality, size and cost; copy a used image to the project's assets.
+for ideas: is the goal met. An edit: it kept what it had to.
+
+Then show it: each image on its own, never a collage, captioned with its
+number and change. Text between tool calls stays folded away, so the closing
+message carries each full brief with its changes against the base as a
+`diff` block (one brief with the line marked when variants differ in one
+line), with model, quality, size and cost. Copy a used image to the
+project's assets.
