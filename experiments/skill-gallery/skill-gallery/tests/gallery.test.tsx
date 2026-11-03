@@ -156,7 +156,7 @@ test('a second click on the open folder closes it', async ($, on) => {
   await ui.unmount()
 })
 
-test('a long folder shows a window of items that the arrows move', async ($, on) => {
+test('a long folder lists every item, for the band to scroll', async ($, on) => {
   mock.store(on)
   const many = Array.from({ length: 20 }, (_, i) => ({
     name: `s${String(i).padStart(2, '0')}`,
@@ -170,23 +170,8 @@ test('a long folder shows a window of items that the arrows move', async ($, on)
   await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
   const ui = await $.ui.mount({ ...BAND, surface: 'desktop' })
   await ui.press({ key: 'folder:Мои' })
-  expect(await ui.find({ key: 'item:s00' })).toBeDefined()
-  expect(await ui.find({ key: 'item:s07' })).toBeDefined()
-  expect(await ui.find({ key: 'item:s08' })).toBeUndefined()
-  expect((await ui.find({ type: 'Text', text: /из 20/ }))?.text).toBe('1–8 из 20')
-
-  await ui.press({ key: 'list:down' })
-  expect(await ui.find({ key: 'item:s00' })).toBeUndefined()
-  expect(await ui.find({ key: 'item:s08' })).toBeDefined()
-
-  // The last window ends at the last item.
-  await ui.press({ key: 'list:down' })
-  await ui.press({ key: 'list:down' })
-  expect((await ui.find({ type: 'Text', text: /из 20/ }))?.text).toBe('13–20 из 20')
-
-  await ui.press({ key: 'list:up' })
-  await ui.press({ key: 'list:up' })
-  expect(await ui.find({ key: 'item:s00' })).toBeDefined()
+  expect((await ui.find({ key: 'item:s00' }))?.text).toBe('s00')
+  expect(await ui.find({ key: 'item:s19' })).toBeDefined()
   await ui.unmount()
 })
 

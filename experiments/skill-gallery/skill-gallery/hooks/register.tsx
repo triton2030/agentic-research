@@ -42,10 +42,6 @@ const openFolder = atom(
   { plugin: 'skill-gallery', key: 'openFolder' } as const,
   null as string | null,
 )
-const listOffset = atom({ plugin: 'skill-gallery', key: 'listOffset' } as const, 0)
-
-// How many items the open folder shows at once in the row above the prompt.
-const LIST_ROWS = 8
 
 // Skills, plugin commands and built-in commands; MCP prompts are left out.
 async function refresh($: EngineInterface) {
@@ -131,22 +127,11 @@ async function openPane($: EngineInterface) {
 // A second click on the open folder closes it.
 async function toggleFolder($: EngineInterface, title: string) {
   await update($, openFolder, current => (current === title ? null : title))
-  await update($, listOffset, () => 0)
-}
-
-async function scrollList($: EngineInterface, by: number, total: number, rows: number) {
-  const last = Math.max(0, total - rows)
-  await update($, listOffset, n => Math.min(last, Math.max(0, Math.min(n, last) + by)))
 }
 
 // The folders in the row above the prompt: every section but Избранное.
 async function folders($: EngineInterface) {
   return sectionsOf(await read($, skills), await read($, agents), [])
-}
-
-function windowRows(maxRows: number) {
-  // The folder row and the scroll line take two of the band's rows.
-  return Math.max(3, Math.min(LIST_ROWS, maxRows - 2))
 }
 
 // A skill or command goes in as /name, an agent as its @agent-name mention.
@@ -257,7 +242,7 @@ export const register: Register = on => {
   })
 
   // The row above the prompt: one button per folder; the open folder lists
-  // its items under the row, a window of them at a time.
+  // all its items under the row, and the band scrolls them as any tall tree.
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey) return next(e)
     const all = await folders($)
@@ -265,10 +250,6 @@ export const register: Register = on => {
     const { Box, Button, Text } = $.ui.resolve(e)
     const opened = await read($, openFolder)
     const folder = all.find(f => f.title === opened)
-    const rows = windowRows(e.props.maxRows)
-    const total = folder?.items.length ?? 0
-    const offset = Math.min(await read($, listOffset), Math.max(0, total - rows))
-    const shown = folder?.items.slice(offset, offset + rows) ?? []
 
     return (
       <Box flexDirection="column" gap="xs">
@@ -283,13 +264,13 @@ export const register: Register = on => {
                 {f === folder ? '▾ ' : ''}
                 {f.title}
               </Text>
-              <Text dimColor> {f.items.length}</Text>
+              <Text color="inactive"> {f.items.length}</Text>
             </Button>
           ))}
         </Box>
         {folder && (
           <Box flexDirection="column">
-            {shown.map(item => (
+            {folder.items.map(item => (
               <Button
                 key={`item:${item.id}`}
                 plain
@@ -299,40 +280,16 @@ export const register: Register = on => {
                 }}
               >
                 <Text>{item.label}</Text>
-                <Text dimColor wrap="truncate-end">
+                {/* The desktop ignores dimColor inside a Button; a theme color holds. */}
+                <Text color="inactive" wrap="truncate-end">
                   {item.description ? `  ${item.description}` : ''}
                 </Text>
               </Button>
             ))}
-            {total > rows && (
-              <Box flexDirection="row" columnGap={2}>
-                <Button key="list:up" plain dimColor onPress={() => scrollList($, -rows, total, rows)}>
-                  ▲
-                </Button>
-                <Button key="list:down" plain dimColor onPress={() => scrollList($, rows, total, rows)}>
-                  ▼
-                </Button>
-                <Text dimColor>
-                  {offset + 1}–{offset + shown.length} из {total}
-                </Text>
-              </Box>
-            )}
           </Box>
         )}
       </Box>
     )
-  })
-
-  // The wheel over the band scrolls the open folder's list, the folder row
-  // staying in place.
-  on('ui.scroll', { component: 'AbovePrompt' }, async ($, e, next) => {
-    const opened = await read($, openFolder)
-    const folder = (await folders($)).find(f => f.title === opened)
-    if (!folder) return next(e)
-    const rows = windowRows(e.bodyRows + 1)
-    await scrollList($, e.by, folder.items.length, rows)
-
-    return {}
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
