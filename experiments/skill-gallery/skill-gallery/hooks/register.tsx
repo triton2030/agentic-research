@@ -42,6 +42,12 @@ const openFolder = atom(
   { plugin: 'skill-gallery', key: 'openFolder' } as const,
   null as string | null,
 )
+// Counts picks from a folder's dropdown, so each pick draws the dropdown anew,
+// back on its title.
+const picks = atom({ plugin: 'skill-gallery', key: 'picks' } as const, 0)
+
+// PROBE: this folder is drawn as a Select, to see how the desktop draws one.
+const SELECT_FOLDER = 'Мои'
 
 // Skills, plugin commands and built-in commands; MCP prompts are left out.
 async function refresh($: EngineInterface) {
@@ -247,14 +253,33 @@ export const register: Register = on => {
     if (e.props.hasSurvey) return next(e)
     const all = await folders($)
     if (all.length === 0) return next(e)
-    const { Box, Button, Text } = $.ui.resolve(e)
+    const table = $.ui.resolve(e)
+    const { Box, Button, Text } = table
+    // Mobile draws no Select; the folder stays a button there.
+    const Select = 'Select' in table ? table.Select : undefined
     const opened = await read($, openFolder)
     const folder = all.find(f => f.title === opened)
+    const pickCount = await read($, picks)
 
     return (
       <Box flexDirection="column" gap="xs">
         <Box flexDirection="row" flexWrap="wrap" columnGap={2}>
-          {all.map(f => (
+          {all.map(f =>
+            Select && f.title === SELECT_FOLDER ? (
+              <Select
+                key={`select:${f.title}:${pickCount}`}
+                value=""
+                options={[
+                  { value: '', label: `${f.title} ${f.items.length}` },
+                  ...f.items.map(item => ({ value: item.id, label: item.label })),
+                ]}
+                onSelect={async (id: string) => {
+                  if (!id) return
+                  await insertItem($, id)
+                  await update($, picks, n => n + 1)
+                }}
+              />
+            ) : (
             <Button
               key={`folder:${f.title}`}
               plain
@@ -266,7 +291,8 @@ export const register: Register = on => {
               </Text>
               <Text color="inactive"> {f.items.length}</Text>
             </Button>
-          ))}
+            ),
+          )}
         </Box>
         {folder && (
           <Box flexDirection="column">

@@ -9,6 +9,7 @@ declare module 'claude-code' {
       agents: Shaped<SkillEntry[]>
       // The folder open in the row above the prompt.
       openFolder: string | null
+      picks: number
     }
   }
 }

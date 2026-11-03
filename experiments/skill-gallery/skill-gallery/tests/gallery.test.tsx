@@ -124,20 +124,41 @@ test('the row above the prompt shows folders; a click lists the folder and inser
 
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...BAND, surface })
-    expect((await ui.find({ key: 'folder:Мои' }))?.text).toBe('Мои 1')
     expect((await ui.find({ key: 'folder:Команды' }))?.text).toBe('Команды 1')
     expect((await ui.find({ key: 'folder:Остальное' }))?.text).toBe('Остальное 2')
     expect(await ui.find({ key: 'folder:Избранное' })).toBeUndefined()
     expect(await ui.find({ key: 'item:zeta' })).toBeUndefined()
 
-    await ui.press({ key: 'folder:Мои' })
-    expect((await ui.find({ key: 'folder:Мои' }))?.text).toBe('▾ Мои 1')
-    expect((await ui.find({ key: 'item:zeta' }))?.text).toBe('zeta  Z skill')
-    await ui.press({ key: 'item:zeta' })
+    await ui.press({ key: 'folder:Остальное' })
+    expect((await ui.find({ key: 'folder:Остальное' }))?.text).toBe('▾ Остальное 2')
+    expect((await ui.find({ key: 'item:pk:beta' }))?.text).toBe('pk:beta  B skill')
+    await ui.press({ key: 'item:pk:beta' })
     // A pick closes the folder.
-    expect(await ui.find({ key: 'item:zeta' })).toBeUndefined()
+    expect(await ui.find({ key: 'item:pk:beta' })).toBeUndefined()
     await ui.unmount()
   }
+  expect(fills).toEqual(['/pk:beta ', '/pk:beta '])
+})
+
+test('the Мои folder is a dropdown: a pick inserts and the dropdown starts over', async ($, on) => {
+  mock.store(on)
+  const fills: string[] = []
+  on('command.register', () => ({ value: { command: 'skill-gallery' } }))
+  on('command.list', () => ({ value: COMMANDS }))
+  on('prompt.fill', (_, e) => {
+    fills.push(e.text)
+    return { isFilled: true }
+  })
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
+
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  const ui = await $.ui.mount({ ...BAND, surface: 'desktop' })
+  expect(await ui.find({ key: 'folder:Мои' })).toBeUndefined()
+  await ui.select({ key: 'select:Мои:0', value: 'zeta' })
+  // Each pick draws a fresh dropdown, back on the folder's title.
+  expect(await ui.find({ key: 'select:Мои:1' })).toBeDefined()
+  await ui.select({ key: 'select:Мои:1', value: 'zeta' })
+  await ui.unmount()
   expect(fills).toEqual(['/zeta ', '/zeta '])
 })
 
@@ -159,9 +180,9 @@ test('a second click on the open folder closes it', async ($, on) => {
 test('a long folder lists every item, for the band to scroll', async ($, on) => {
   mock.store(on)
   const many = Array.from({ length: 20 }, (_, i) => ({
-    name: `s${String(i).padStart(2, '0')}`,
+    name: `big:s${String(i).padStart(2, '0')}`,
     description: '',
-    source: 'user',
+    source: 'plugin',
   }))
   on('command.register', () => ({ value: { command: 'skill-gallery' } }))
   on('command.list', () => ({ value: many }))
@@ -169,9 +190,9 @@ test('a long folder lists every item, for the band to scroll', async ($, on) => 
 
   await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
   const ui = await $.ui.mount({ ...BAND, surface: 'desktop' })
-  await ui.press({ key: 'folder:Мои' })
-  expect((await ui.find({ key: 'item:s00' }))?.text).toBe('s00')
-  expect(await ui.find({ key: 'item:s19' })).toBeDefined()
+  await ui.press({ key: 'folder:big' })
+  expect((await ui.find({ key: 'item:big:s00' }))?.text).toBe('s00')
+  expect(await ui.find({ key: 'item:big:s19' })).toBeDefined()
   await ui.unmount()
 })
 
