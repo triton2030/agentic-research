@@ -106,6 +106,12 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `Shot like a premium product photograph: one object, soft studio light, a seamless dark background` | Пустой фон, студийный свет, предмет по центру | v19 |
 | `premium tech brand key visual`, `A clean minimalist 3D render.` рядом с прямым кадром | Почти без эффекта | v22, v23 |
 | `A clean minimalist Cinema 4D render with simple shapes.` рядом с тем же кадром | Заметно: прямые рёбра, чистый блок, тонкая трещина — имя программы сильнее слова «3D» | v41, v42 |
+| `the calm key visual of a modern fintech brand` вместо `a calm, premium corporate look` | Почти без изменений: чуть темнее и контрастнее | v46 |
+| `calm and restrained like a slide from an Apple keynote` | Светлее и воздушнее | v47 |
+| `corporate design discipline — generous negative space, strict alignment, …` | Меняет раскладку: строгая левая сетка текста | v48 |
+| `the calm, premium look of a private bank's investor presentation` | Меняет шрифт на узкий, в духе DIN | v49 |
+| `the cover of a Swiss bank's annual report, calm and premium` | Светлый редакционный вид, много пустого места, мелкий аккуратный подзаголовок | v50 |
+| `Create a social post image for X` | Сама задаёт жанр поста, который цепляет (наблюдение владельца, не проверено) | — |
 | `Nothing else in the scene: no rocks, no mountains, only the ice in an empty dark misty space.` | Пустой тёмный фон | v18 |
 | `The restraint of a premium tech brand campaign … no drama` | Без эффекта | v20 |
 
