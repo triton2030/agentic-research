@@ -7,7 +7,9 @@ declare module 'claude-code' {
       favorites: Shaped<string[]>
       expanded: Shaped<string[]>
       agents: Shaped<SkillEntry[]>
-      isOpen: boolean
+      // The folder open in the row above the prompt, and how far its list is scrolled.
+      openFolder: string | null
+      listOffset: number
     }
   }
 }

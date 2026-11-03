@@ -38,7 +38,14 @@ const expanded = atom({ plugin: 'skill-gallery', key: 'expanded' } as const, [],
 const agents = atom({ plugin: 'skill-gallery', key: 'agents' } as const, [], {
   shape: 'agents-1',
 })
-const isOpen = atom({ plugin: 'skill-gallery', key: 'isOpen' } as const, false)
+const openFolder = atom(
+  { plugin: 'skill-gallery', key: 'openFolder' } as const,
+  null as string | null,
+)
+const listOffset = atom({ plugin: 'skill-gallery', key: 'listOffset' } as const, 0)
+
+// How many items the open folder shows at once in the row above the prompt.
+const LIST_ROWS = 8
 
 // Skills, plugin commands and built-in commands; MCP prompts are left out.
 async function refresh($: EngineInterface) {
@@ -117,11 +124,29 @@ async function refreshAll($: EngineInterface) {
   await refresh($)
 }
 
-// An open pane may wait undrawn (no window attached yet, as right after a
-// reload); it is still open. Only ui.close marks it closed.
 async function openPane($: EngineInterface) {
   await $.ui.open({ id: PANE, title: TITLE })
-  await update($, isOpen, () => true)
+}
+
+// A second click on the open folder closes it.
+async function toggleFolder($: EngineInterface, title: string) {
+  await update($, openFolder, current => (current === title ? null : title))
+  await update($, listOffset, () => 0)
+}
+
+async function scrollList($: EngineInterface, by: number, total: number, rows: number) {
+  const last = Math.max(0, total - rows)
+  await update($, listOffset, n => Math.min(last, Math.max(0, Math.min(n, last) + by)))
+}
+
+// The folders in the row above the prompt: every section but Избранное.
+async function folders($: EngineInterface) {
+  return sectionsOf(await read($, skills), await read($, agents), [])
+}
+
+function windowRows(maxRows: number) {
+  // The folder row and the scroll line take two of the band's rows.
+  return Math.max(3, Math.min(LIST_ROWS, maxRows - 2))
 }
 
 // A skill or command goes in as /name, an agent as its @agent-name mention.
@@ -150,7 +175,7 @@ function agentName(id: string) {
   return id.startsWith(AGENT_PREFIX) ? id.slice(AGENT_PREFIX.length) : id
 }
 
-type Item = { id: string; label: string }
+type Item = { id: string; label: string; description: string }
 type Section = { title: string; items: Item[] }
 
 function sectionsOf(
@@ -166,7 +191,11 @@ function sectionsOf(
     if (favs.includes(skill.name)) continue
     const title = sectionOf(skill)
     const isPlugin = title !== MINE && title !== COMMANDS && title !== OTHER_PLUGINS
-    add(title, { id: skill.name, label: isPlugin ? shortName(skill.name) : skill.name })
+    add(title, {
+      id: skill.name,
+      label: isPlugin ? shortName(skill.name) : skill.name,
+      description: skill.description,
+    })
   }
 
   // Small plugin sections and loose plugin commands go under Остальное.
@@ -174,14 +203,13 @@ function sectionsOf(
   for (const [title, items] of [...groups.entries()]) {
     const isCore = title === MINE || title === COMMANDS
     if (isCore || (title !== OTHER_PLUGINS && items.length >= MIN_SECTION)) continue
-    rest.push(...items.map(item => ({ id: item.id, label: item.id })))
+    rest.push(...items.map(item => ({ ...item, label: item.id })))
     groups.delete(title)
   }
 
   const agentItems = agentList
-    .map(a => `${AGENT_PREFIX}${a.name}`)
-    .filter(id => !favs.includes(id))
-    .map(id => ({ id, label: agentName(id) }))
+    .map(a => ({ id: `${AGENT_PREFIX}${a.name}`, label: a.name, description: a.description }))
+    .filter(item => !favs.includes(item.id))
 
   const pluginTitles = [...groups.keys()]
     .filter(t => t !== MINE && t !== COMMANDS)
@@ -191,7 +219,7 @@ function sectionsOf(
   const push = (title: string, items: Item[] | undefined) => {
     if (items && items.length > 0) result.push({ title, items })
   }
-  push(FAVORITES, favs.map(id => ({ id, label: agentName(id) })))
+  push(FAVORITES, favs.map(id => ({ id, label: agentName(id), description: '' })))
   push(MINE, groups.get(MINE))
   push(COMMANDS, groups.get(COMMANDS))
   push(AGENTS, agentItems)
@@ -210,7 +238,6 @@ export const register: Register = on => {
     const result = await next(e)
     await loadSaved($)
     await refresh($)
-    await openPane($)
 
     return result
   })
@@ -222,13 +249,6 @@ export const register: Register = on => {
     return { text: 'Skill gallery opened.' }
   })
 
-  on('ui.close', async ($, e, next) => {
-    const result = await next(e)
-    if (e.id === PANE) await update($, isOpen, () => false)
-
-    return result
-  })
-
   on('agent.offer', async ($, e, next) => {
     const result = await next(e)
     await noteAgent($, { name: e.agent, description: e.description, source: e.source })
@@ -236,33 +256,83 @@ export const register: Register = on => {
     return result
   })
 
-  // The row above the prompt: favorites to click, and a tiny reopen button
-  // while the pane is closed.
+  // The row above the prompt: one button per folder; the open folder lists
+  // its items under the row, a window of them at a time.
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     if (e.props.hasSurvey) return next(e)
-    const favs = await read($, favorites)
-    const isClosed = !(await read($, isOpen))
-    if (favs.length === 0 && !isClosed) return next(e)
+    const all = await folders($)
+    if (all.length === 0) return next(e)
     const { Box, Button, Text } = $.ui.resolve(e)
+    const opened = await read($, openFolder)
+    const folder = all.find(f => f.title === opened)
+    const rows = windowRows(e.props.maxRows)
+    const total = folder?.items.length ?? 0
+    const offset = Math.min(await read($, listOffset), Math.max(0, total - rows))
+    const shown = folder?.items.slice(offset, offset + rows) ?? []
 
     return (
-      <Box flexDirection="row" flexWrap="wrap" columnGap={2}>
-        {favs.length > 0 && <Text dimColor>★</Text>}
-        {favs.map(name => (
-          <Button
-            key={`band:${name}`}
-            plain
-            label={shortName(agentName(name))}
-            onPress={() => insertItem($, name)}
-          />
-        ))}
-        {isClosed && (
-          <Button key="reopen" plain dimColor onPress={() => openPane($)}>
-            ☆ skills
-          </Button>
+      <Box flexDirection="column" gap="xs">
+        <Box flexDirection="row" flexWrap="wrap" columnGap={2}>
+          {all.map(f => (
+            <Button
+              key={`folder:${f.title}`}
+              plain
+              onPress={() => toggleFolder($, f.title)}
+            >
+              <Text bold={f === folder}>
+                {f === folder ? '▾ ' : ''}
+                {f.title}
+              </Text>
+              <Text dimColor> {f.items.length}</Text>
+            </Button>
+          ))}
+        </Box>
+        {folder && (
+          <Box flexDirection="column">
+            {shown.map(item => (
+              <Button
+                key={`item:${item.id}`}
+                plain
+                onPress={async () => {
+                  await insertItem($, item.id)
+                  await update($, openFolder, () => null)
+                }}
+              >
+                <Text>{item.label}</Text>
+                <Text dimColor wrap="truncate-end">
+                  {item.description ? `  ${item.description}` : ''}
+                </Text>
+              </Button>
+            ))}
+            {total > rows && (
+              <Box flexDirection="row" columnGap={2}>
+                <Button key="list:up" plain dimColor onPress={() => scrollList($, -rows, total, rows)}>
+                  ▲
+                </Button>
+                <Button key="list:down" plain dimColor onPress={() => scrollList($, rows, total, rows)}>
+                  ▼
+                </Button>
+                <Text dimColor>
+                  {offset + 1}–{offset + shown.length} из {total}
+                </Text>
+              </Box>
+            )}
+          </Box>
         )}
       </Box>
     )
+  })
+
+  // The wheel over the band scrolls the open folder's list, the folder row
+  // staying in place.
+  on('ui.scroll', { component: 'AbovePrompt' }, async ($, e, next) => {
+    const opened = await read($, openFolder)
+    const folder = (await folders($)).find(f => f.title === opened)
+    if (!folder) return next(e)
+    const rows = windowRows(e.bodyRows + 1)
+    await scrollList($, e.by, folder.items.length, rows)
+
+    return {}
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {

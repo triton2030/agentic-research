@@ -95,15 +95,25 @@ test('favorites from an earlier session come back', async ($, on) => {
   await ui.unmount()
 })
 
-const BAND = { plugin: 'skill-gallery', component: 'AbovePrompt', props: {} } as const
+const BAND = {
+  plugin: 'skill-gallery',
+  component: 'AbovePrompt',
+  props: {
+    hasSurvey: false,
+    isWorking: false,
+    maxRows: 20,
+    bodyColumns: 80,
+    scroll: { offset: 0, bodyRows: 19 },
+    view: {},
+  },
+} as const
 
-test('favorites sit in the row above the prompt and insert on click', async ($, on) => {
-  mock.store(on, { favorites: ['pk:beta'] })
+test('the row above the prompt shows folders; a click lists the folder and inserts', async ($, on) => {
+  // Favorites no longer leave their folder in the row.
+  mock.store(on, { favorites: ['zeta'] })
   const fills: string[] = []
   on('command.register', () => ({ value: { command: 'skill-gallery' } }))
   on('command.list', () => ({ value: COMMANDS }))
-  // Undrawn (no window yet) still counts as open: no reopen button.
-  on('ui.open', () => ({ value: { isPlaced: false, reason: 'no-surface' } }))
   on('prompt.fill', (_, e) => {
     fills.push(e.text)
     return { isFilled: true }
@@ -114,51 +124,85 @@ test('favorites sit in the row above the prompt and insert on click', async ($, 
 
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...BAND, surface })
-    expect((await ui.find({ key: 'band:pk:beta' }))?.text).toBe('beta')
-    expect(await ui.find({ key: 'reopen' })).toBeUndefined()
-    await ui.press({ key: 'band:pk:beta' })
+    expect((await ui.find({ key: 'folder:Мои' }))?.text).toBe('Мои 1')
+    expect((await ui.find({ key: 'folder:Команды' }))?.text).toBe('Команды 1')
+    expect((await ui.find({ key: 'folder:Остальное' }))?.text).toBe('Остальное 2')
+    expect(await ui.find({ key: 'folder:Избранное' })).toBeUndefined()
+    expect(await ui.find({ key: 'item:zeta' })).toBeUndefined()
+
+    await ui.press({ key: 'folder:Мои' })
+    expect((await ui.find({ key: 'folder:Мои' }))?.text).toBe('▾ Мои 1')
+    expect((await ui.find({ key: 'item:zeta' }))?.text).toBe('zeta  Z skill')
+    await ui.press({ key: 'item:zeta' })
+    // A pick closes the folder.
+    expect(await ui.find({ key: 'item:zeta' })).toBeUndefined()
     await ui.unmount()
   }
-  expect(fills).toEqual(['/pk:beta ', '/pk:beta '])
+  expect(fills).toEqual(['/zeta ', '/zeta '])
 })
 
-test('with no favorites and the pane open, the row is left to the engine', async ($, on) => {
+test('a second click on the open folder closes it', async ($, on) => {
   mock.store(on)
   on('command.register', () => ({ value: { command: 'skill-gallery' } }))
   on('command.list', () => ({ value: COMMANDS }))
-  on('ui.open', () => ({ value: { isPlaced: true } }))
-  on('ui.render', ($, e) => {
-    const { Text } = $.ui.resolve(e)
-    return <Text>engine</Text>
-  })
   on('session.start', (_, e) => ({ cwd: e.cwd }))
 
   await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
   const ui = await $.ui.mount({ ...BAND, surface: 'desktop' })
-  expect(await ui.find({ type: 'Text', text: 'engine' })).toBeDefined()
+  await ui.press({ key: 'folder:Остальное' })
+  expect((await ui.find({ key: 'item:pk:beta' }))?.text).toBe('pk:beta  B skill')
+  await ui.press({ key: 'folder:Остальное' })
+  expect(await ui.find({ key: 'item:pk:beta' })).toBeUndefined()
   await ui.unmount()
 })
 
-test('a closed pane leaves a reopen button in the row', async ($, on) => {
+test('a long folder shows a window of items that the arrows move', async ($, on) => {
+  mock.store(on)
+  const many = Array.from({ length: 20 }, (_, i) => ({
+    name: `s${String(i).padStart(2, '0')}`,
+    description: '',
+    source: 'user',
+  }))
+  on('command.register', () => ({ value: { command: 'skill-gallery' } }))
+  on('command.list', () => ({ value: many }))
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
+
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  const ui = await $.ui.mount({ ...BAND, surface: 'desktop' })
+  await ui.press({ key: 'folder:Мои' })
+  expect(await ui.find({ key: 'item:s00' })).toBeDefined()
+  expect(await ui.find({ key: 'item:s07' })).toBeDefined()
+  expect(await ui.find({ key: 'item:s08' })).toBeUndefined()
+  expect((await ui.find({ type: 'Text', text: /из 20/ }))?.text).toBe('1–8 из 20')
+
+  await ui.press({ key: 'list:down' })
+  expect(await ui.find({ key: 'item:s00' })).toBeUndefined()
+  expect(await ui.find({ key: 'item:s08' })).toBeDefined()
+
+  // The last window ends at the last item.
+  await ui.press({ key: 'list:down' })
+  await ui.press({ key: 'list:down' })
+  expect((await ui.find({ type: 'Text', text: /из 20/ }))?.text).toBe('13–20 из 20')
+
+  await ui.press({ key: 'list:up' })
+  await ui.press({ key: 'list:up' })
+  expect(await ui.find({ key: 'item:s00' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('the pane no longer opens by itself', async ($, on) => {
   mock.store(on)
   let opens = 0
+  on('command.register', () => ({ value: { command: 'skill-gallery' } }))
+  on('command.list', () => ({ value: COMMANDS }))
   on('ui.open', () => {
     opens += 1
     return { value: { isPlaced: true } }
   })
-  // The pane as ui.close leaves it, for the first read (the drawing).
-  let isFirst = true
-  on('state.get', { plugin: 'skill-gallery', key: 'isOpen' }, ($, e, next) => {
-    if (!isFirst) return next(e)
-    isFirst = false
-    return { value: { value: false, version: 0 } }
-  })
+  on('session.start', (_, e) => ({ cwd: e.cwd }))
 
-  const ui = await $.ui.mount({ ...BAND, surface: 'desktop' })
-  expect((await ui.find({ key: 'reopen' }))?.text).toBe('☆ skills')
-  await ui.press({ key: 'reopen' })
-  expect(opens).toBe(1)
-  await ui.unmount()
+  await $.session.start({ cwd: '/', surface: 'desktop', isInteractive: true })
+  expect(opens).toBe(0)
 })
 
 test('sections start folded, small ones go under Остальное, a title click opens', async ($, on) => {
@@ -243,7 +287,8 @@ test('agents the engine offers get their section and insert as @agent-name', asy
   ])
 
   const band = await $.ui.mount({ ...BAND, surface: 'desktop' })
-  expect((await band.find({ key: 'band:@agent-Explore' }))?.text).toBe('Explore')
+  await band.press({ key: 'folder:Агенты' })
+  expect((await band.find({ key: 'item:@agent-Explore' }))?.text).toBe('Explore  x')
   await band.unmount()
 })
 
