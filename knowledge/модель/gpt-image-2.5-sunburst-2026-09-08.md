@@ -71,6 +71,7 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `the size of a mountain, seen from low` | Скалистая гора | v6 |
 | `architectural and silent` | Тёмный обелиск, похож на камень | v4 |
 | `a giant block of clear translucent ice seen up close, filling most of the frame` | Глыба вплотную, обрезана кадром — не куб и не гора | v13, v21–v26 |
+| Убрать `seen up close`, оставив `filling most of the frame` | Глыба целиком, плита, не куб; деталей не меньше, в фоне горы | v35 против v33 |
 | `one compact standalone object` | Куб; пустое место — горы и озеро | v27 |
 | `its faces cut into large flat planes with clean straight edges` | Брус с ровной гранью | v21 |
 
@@ -85,6 +86,8 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `glowing hot red-orange`, `molten` | Лава с тёмным камнем; угроза | v3, v6, v13 |
 | `as if a fire burns at its core` | Золото по всей толще, не красное | v14 |
 | `like an ember frozen in the ice` | Раскалённое ядро внутри | v17 |
+| `a single thin crack` вместо `a deep crack` | Одна тонкая трещина, лавы и камня меньше — картинка проще | v36 против v33 |
+| Убрать `, lighting the ice from within` после строки трещины | Почти без эффекта | v34 против v33 |
 | `warm amber and red light pouring from a narrow crack in its heart` | Центральная янтарно-красная трещина | v16, v18–v20 (4) |
 | `glowing bright golden-amber` | Золотые жилы, тепло без угрозы | v24 |
 | `energy` без цвета | Голубые молнии | v7 |
