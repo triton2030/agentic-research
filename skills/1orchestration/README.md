@@ -74,3 +74,5 @@ Claude: [версия 2026-09-06](versions/claude-2026-09-06/SKILL.md),
 и Codex UI metadata. Описание v13 выше относится к истории.
 
 Claude: [версия 2026-11-03](versions/claude-2026-11-03/SKILL.md) — работу Opus проверяет другая семья, не Sonnet; `work/session-lessons-2026-11-03.md`.
+
+Claude: [версия 2026-11-03-roles](versions/claude-2026-11-03-roles/SKILL.md) — роли по уму и тщательности: Opus — суждение с коротким итогом, Sol — тщательное исполнение; `work/roles-2026-11-03/README.md`.
