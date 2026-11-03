@@ -72,6 +72,10 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `architectural and silent` | Тёмный обелиск, похож на камень | v4 |
 | `a giant block of clear translucent ice seen up close, filling most of the frame` | Глыба вплотную, обрезана кадром — не куб и не гора | v13, v21–v26 |
 | Убрать `seen up close`, оставив `filling most of the frame` | Глыба целиком, плита, не куб; деталей не меньше, в фоне горы | v35 против v33 |
+| `a giant softly rounded slab of clear ice` | Самая простая форма — гладкая скруглённая плита; с инеем и паром поверхность шершавеет | v39, v40 |
+| `a few large, clean, smooth facets` | Грани крупнее, но форма всё ещё сложная | v37, v38 |
+| `Clear ice that bends and refracts the light, with a thin white frost along its edges` | Преломления и белая изморозь по краям; лёд остаётся гладким | v37, v39, v41 |
+| `its surface lightly dusted with frost, cold vapor drifting off it` | Иней и пар — холод читается сильнее всего, но фактуры больше | v38, v40, v42 |
 | `one compact standalone object` | Куб; пустое место — горы и озеро | v27 |
 | `its faces cut into large flat planes with clean straight edges` | Брус с ровной гранью | v21 |
 
@@ -98,6 +102,7 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | --- | --- | --- |
 | `Shot like a premium product photograph: one object, soft studio light, a seamless dark background` | Пустой фон, студийный свет, предмет по центру | v19 |
 | `premium tech brand key visual`, `A clean minimalist 3D render.` рядом с прямым кадром | Почти без эффекта | v22, v23 |
+| `A clean minimalist Cinema 4D render with simple shapes.` рядом с тем же кадром | Заметно: прямые рёбра, чистый блок, тонкая трещина — имя программы сильнее слова «3D» | v41, v42 |
 | `Nothing else in the scene: no rocks, no mountains, only the ice in an empty dark misty space.` | Пустой тёмный фон | v18 |
 | `The restraint of a premium tech brand campaign … no drama` | Без эффекта | v20 |
 
