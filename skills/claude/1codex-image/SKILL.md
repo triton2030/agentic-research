@@ -6,58 +6,78 @@ description: >-
   draw an icon set. Recraft by name: 1recraft.
 ---
 
-# 1codex-image — the fewest words the model reads as the owner's intent
+# 1codex-image — goals for a thinking designer
 
-## How the model draws
+## How to work with the model
 
-Images are made by OpenAI GPT Image with the owner's API key; he uses it for
-its imagination. Recraft only when he names it (`1recraft`), a Codex thread
-only when he names it (`1t3`).
+Images are made by OpenAI GPT Image with the owner's API key. Recraft only
+when he names it (`1recraft`), a Codex thread only when he names it (`1t3`).
 
-The model is a designer who thinks in genres: from the strongest words of a
-brief it picks the most typical picture of that genre and fills every slot
-the brief leaves open with the genre's defaults. Measured on 20 banners
-(2026-11) and confirmed by OpenAI's guide and practitioners:
+The model thinks: steer it like an agent, with goals, not drawing orders. Its
+job is to work out how to meet the goal — order, size, accents, cards,
+colors — and that is what the owner uses it for: it is his designer. A brief
+is built from modules:
+
+- task — what the image is, what it is for, what must be in it, as a list;
+- style — the approved look in one paragraph; it carries over word for word
+  to other tasks, and what it names becomes a motif there too;
+- the owner's invariants — what he pinned or reacted to, in the cheapest
+  words.
+
+Every word pulls a meaning with it, and the strongest one spreads over the
+whole picture. So an invariant rewrites the brief: find the words that pull
+against it and rewrite them; never append a line on top.
+
+Two kinds of result. Designs of pages, screens and concepts are an idea
+generator: invented labels and a wrong text color are expected, and the test
+is whether the goal is met. An image that ships — a banner, a post — gets its
+text checked letter by letter and no invented claims about the product.
+
+What each phrase did, next to what and in how many runs, is kept in
+`~/Documents/GitHub/agentic-research/knowledge/модель/gpt image 2.5.md`. Its
+strongest lessons (2026-11):
 
 - Nouns decide, adjectives tune, bans weigh least: `a block of translucent
-  ice` gave an ice object up close; `iceberg`, `glacier` gave rocky landscape.
-- A genre phrase is the strongest lever: `a premium product photograph`
-  brought an empty background, studio light and one centred object at once.
+  ice` gave an ice object; `iceberg`, `glacier` gave rocky landscape.
+- A genre phrase is a strong lever — `a premium product photograph` brought
+  an empty background, studio light and one centred object — unless another
+  line already fixes the framing.
 - It reads literally: `like an ember` drew an ember; `the ice holds the fire`,
-  `no drama`, `restraint` changed nothing visible.
-- The strongest word spreads: `crack` cracked all the ice, `dark` added rocks,
-  waves and a sunset.
+  `no drama` changed nothing visible.
+- The mood follows the main accent's color: red-orange lava read as menace,
+  golden-amber as warmth.
 - Strength is a ladder of words: `barely visible` → `quiet glow` → `narrow
   crack` → `seam` → `molten` (lava).
 - An open slot gets a default: no light word — daylight; no typeface —
-  decorative letters; no background — scenery; unasked icons and dividers.
+  decorative letters; no background — scenery; a list of points — icons.
 - Quoted text comes out exact, Russian too; a number it must compute may not.
-- One brief varies run to run; a strong line repeats across briefs.
 
-So a spec — positions, pixels, a color per element — gets exactly its skeleton
+A spec — positions, pixels, a color per element — gets exactly its skeleton
 back: the same app screen came out rich from a short brief and empty from a
 spec. In the owner's experience, the longer the brief, the worse the image.
 
 ## Task
 
-Turn the owner's intent into the fewest words the model reads as it, run the
-call, and check the image.
+Give the model a goal it can design toward — task, style and the owner's
+invariants in the fewest words it reads as them — run the call, and judge the
+image by its goal.
 
 ## Goal
 
-An image that serves its purpose in the model's own taste and holds the
-owner's invariants: exact text, a brand color, what an edit keeps, what he
-reacted to. Everything else stays the model's choice.
+An image that serves its purpose in the model's own design and holds the
+owner's invariants: exact text where it ships, a brand color, what an edit
+keeps, what he reacted to. Everything else stays the model's choice.
 
 ## When you write a brief
 
 English, 60–150 words, growing only with the number of items:
 
-1. What it is and where it will be used — this sets genre and polish; name
-   the genre when it matters (`a premium product photograph`, `It should look
+1. Task: what it is and where it will be used — this sets genre and polish;
+   name the genre when it matters (`a premium product photograph`, `It should look
    like a real, well-designed, beautiful app`).
-2. `Make it beautiful:` with mood, palette and, when the look depends on it,
-   light: dark or bright, and its source.
+2. Style: mood, palette and, when the look depends on it, light — dark or
+   bright, and its source. An approved style paragraph is reused word for
+   word.
 3. `It should include:` — things as nouns, not places; the main one gets a
    hierarchy word.
 4. Exact text in quotes, in its own language, with its typeface in words:
@@ -68,16 +88,19 @@ English, 60–150 words, growing only with the number of items:
 Where something sits or how many pixels it takes, write only if the owner
 dictated it, in his words.
 
+The approved banner of the series (style paragraph second):
+
 ```text
 Create a social post image for X that sums up the first week of PERMAFROST, a Bitcoin DeFi launch by Subfrost: seven days, four upgrades.
 
-Make it beautiful: a calm, premium corporate look. Minimal and quiet, very few details. Dark and atmospheric, in deep slate grey and muted turquoise, with soft fog. Shot like a premium product photograph: one object, soft studio light, a seamless dark background.
+Make it beautiful: a calm, premium corporate look. Minimal and quiet, very few details. Softly lit, calm and atmospheric, in cool steel blue and soft turquoise, wrapped in thick soft fog. Clean, translucent ice with almost no texture. A clean minimalist 3D render.
 
 It should include:
-- an enormous block of pure turquoise ice, its sharp edges catching the light
-- warm amber and red light pouring from a narrow crack in its heart
+- a giant block of clear translucent ice seen up close, filling most of the frame
+- a deep crack inside the ice glowing hot red-orange, lighting the ice from within
 - the headline "PERMAFROST" as the largest element, in elegant wide-spaced white sans-serif capitals
 - "7 DAYS / 4 UPGRADES"
+- four short labels: "More ways to deposit", "Precise boost", "Safe bonding", "Flexible farms"
 - a calm empty corner for a logo
 
 All text in English, each line exactly as quoted and only once, no other text. Flat finished artwork, full bleed.
@@ -85,17 +108,21 @@ All text in English, each line exactly as quoted and only once, no other text. F
 
 ## When the image misses or the owner reacts
 
-Translate his words, do not paste them. A reaction names an invariant — a
-state that must hold ("looks like cold mountains" → ice, not landscape). Reach
-it with the cheapest words: a new genre or noun first, one step on the
-strength ladder next, a concrete ban last, with what fills the space (`only
-the ice in an empty dark misty space`). The rest stays free.
+Read the lessons file first: it may already hold the words for this
+invariant. Translate his words, do not paste them. A reaction names an
+invariant — a state that must hold ("looks like cold mountains" → ice, not
+landscape). Reach it with the cheapest words — a new genre or noun first, one
+step on the strength ladder next, a concrete ban last, with what fills the
+space — and rewrite the lines that pull against it. The rest stays free.
 
 To explore, keep one base brief and run three variants in parallel, each
-changing one line; log what each word gave and what it dragged along. Run a
-winner twice more before trusting it, then drop pinned lines one at a time
-while the invariant holds. Show each image with its number and the lines
-that differ.
+changing one line. Run a winner twice more before trusting it, then drop
+pinned lines one at a time while the invariant holds.
+
+After a series, add to the lessons file what each phrase gave, under what it
+controls: the phrase, the effect with what it dragged along, the brief it
+stood in and the number of runs; a row a new run confirms or contradicts is
+updated, not doubled. Commit it in `agentic-research`.
 
 ## When you start from an existing image
 
@@ -150,7 +177,8 @@ edges multiples of 16); `FORMAT=webp` is lighter.
 
 ## When the image arrives
 
-Check it against the request: every item there, text letter by letter (a
-stylized A without its bar reads as Λ), an edit kept what it had to. Give the
-owner the file link, model, quality, size and cost; copy a used image to the
-project's assets. A miss is fixed by one change: every attempt is paid.
+Judge it by its kind. An image that ships: every item there, text letter by
+letter (a stylized A without its bar reads as Λ), no invented claims. A design
+for ideas: is the goal met. An edit: it kept what it had to. Show each image
+with its number and the lines that differ; give the file link, model,
+quality, size and cost; copy a used image to the project's assets.
