@@ -84,3 +84,4 @@ description: "История скила 1t3: треды Muse, Gemini и Grok ч�
   `2026-10-14-011724-claude-92511fd9.md#recall-342824c7cc2a4e49977d6d91e66dcfb4`;
   проба и проверка субагентами Sonnet — `work/english-2026-10-24/`,
   карта — `cut.md`.
+- `versions/claude-2026-11-03/` — уроки сессии Subfrost: Claude-тред и фоновые проверки, ответ на вопрос исполнителя, `scripts/wake_on_any.sh` для нескольких тредов — `work/session-lessons-2026-11-03.md`.

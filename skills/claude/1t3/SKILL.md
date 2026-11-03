@@ -105,6 +105,11 @@ and per the docs Meta may train on it by default.
   inherits your effort, a thread sets it exactly, and both spend the same
   Claude subscription (owner, 2026-11-02; launched and ran from Claude Code
   that day). Other Claude work stays with your own subagents.
+  Its own background task does not resume it: three Opus threads started a
+  25-minute check in the background, ended the turn and never reported
+  (2026-11-03). The brief says to run long checks in the foreground with a
+  long timeout; a thread that already ended waiting on a run gets one message
+  after the run's processes exit.
 - Argon is expensive and has its own weekly quota: text writing stays on
   `gemini-3.8-flash-high`. Flash asserts where sources are silent.
 - Grok finds recent events only by web search — ask for dated sources. A long
@@ -122,6 +127,12 @@ watcher in the background (`run_in_background: true`) with the launch's
 ```bash
 bash "<skill-dir>/scripts/wake_on_done.sh" '<runId or threadId>'
 ```
+
+Several threads at once, or a doer you check on a schedule: one background
+`scripts/wake_on_any.sh [--tick MIN] <id>...` exits on the first thread that
+ends or asks, naming the ids still watched, or after the tick; start it again
+with those ids. One watcher per thread plus a timer woke a session separately
+for each of six tasks (2026-11-03).
 
 It reads the turn's status from T3's database for free, exits when the turn
 ends or the agent asks, and follows a turn T3 continued after a restart. In
@@ -148,8 +159,10 @@ clock.
 - Stalled with a question — `t3_pending_request`: `list`, then `respond`.
   Gemini accepts only an offered option, and `respond` doesn't check: answer
   with an option's value as `read` shows it, or the agent gets "User
-  Skipped". Command approvals only the owner gives, in the app. Stalled
-  without a question — interrupt.
+  Skipped". When no option fits exactly, answer with the nearest and right
+  after send the difference with `t3_thread_send` `mode: "auto"`: the agent
+  resumes from the bare option at once (Codex, 2026-11-03). Command approvals
+  only the owner gives, in the app. Stalled without a question — interrupt.
 
 ## When the turn has finished
 
