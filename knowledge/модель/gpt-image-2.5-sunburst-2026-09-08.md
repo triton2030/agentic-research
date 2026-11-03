@@ -75,7 +75,7 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `The whole picture in deep, muted midtones.` | Темнее (76–89) и мягче (контраст 40–43) в каждом прогоне; ракурс гуляет | v165 ×4 против v157 |
 | `Matte, deep tones with gentle transitions between light and shadow.` | Темнее (79) и мягче (37); акцент на тёмном ярче | v167 против v157 |
 | `The fog is a deep, dense blue-grey.` | Мгла сине-серая вместо белой: темнее (89), мягче (39) | v168 против v157 |
-| `Soft shadows, no bright highlights.` | Мягче (40), но чуть светлее (99) | v166 против v157 |
+| `Soft shadows, no bright highlights.` | Мягче (40), но чуть светлее (99); при брифе v170 — темнее (82) и наименее детальная, вместе с тихой трещиной и ровным туманом — контраст 26, самая гладкая серия | v166 против v157; v179 против v170; v181 против v180 |
 
 ### Палитра и туман
 
@@ -88,7 +88,7 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `wrapped in thick soft fog` | Много тумана, но клубами, как облака | v24–v26 |
 | `in a thin, even haze that softens everything behind the ice` | Ровная дымка в фоне; у края ещё клубится | v31 |
 | `with low, flat ground fog lying still around its base` | Плоский туман только у подножия; выше ясно, фон детальнее | v32 |
-| `veiled in a dense, smooth, even blue-grey fog` вместо `wrapped in thick soft fog` | Ровная слоистая мгла без клубов и без запрета; дали тают ярусами; чуть серее | v88 против v83 |
+| `veiled in a dense, smooth, even blue-grey fog` вместо `wrapped in thick soft fog` | Ровная слоистая мгла без клубов и без запрета; дали тают ярусами; чуть серее. Грани льда при этом не упрощаются (v175) | v88 против v83; v175 против v170 |
 | `veiled in a smooth, uniform mist, with no billowing clouds` | Ровная мгла без клубов; спокойствие перешло и на акцент — трещина тише | v33 |
 
 ### Материал и форма предмета
@@ -135,7 +135,7 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `warm amber and red light pouring from a narrow crack in its heart` | Центральная янтарно-красная трещина | v16, v18–v20 (4) |
 | `glowing bright golden-amber` | Золотые жилы, тепло без угрозы | v24 |
 | `energy` без цвета | Голубые молнии | v7 |
-| `a deep crack inside the ice, with red-orange light coming from far within` вместо `…glowing hot red-orange, lighting the ice from within` | Тонкая светящаяся линия, лавы и тёмного камня заметно меньше — спокойнее; глубины за поверхностью не видно | v79, v79-r2, r3, r4 против v73 (4) |
+| `a deep crack inside the ice, with red-orange light coming from far within` вместо `…glowing hot red-orange, lighting the ice from within` | Тонкая светящаяся линия, лавы и тёмного камня заметно меньше — спокойнее; глубины за поверхностью не видно | v79, v79-r2, r3, r4 против v73 (4); v173, v180 ×3 против v170 ×4: жар 0.6–1.2% кадра против 3–5% |
 | `, its warm light softly shining through the whole ice` после строки трещины | Оранжевый свет заходит в толщу льда вокруг трещины; лава в трещине остаётся | v86 против v83 |
 | `The heat inside is calm and steady.` | Почти без эффекта; свечение чуть мягче по граням | v87 против v83 |
 | `glowing warm red-orange` вместо `glowing hot red-orange` | Почти без эффекта: лава остаётся — её несёт `glowing` у трещины, а не `hot` | v80 против v73 |
@@ -165,7 +165,7 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `calm and restrained like a slide from an Apple keynote` | Светлее и воздушнее | v47 |
 | `The quiet design of an Apple product page.` строкой стиля | Светлее и воздушнее, бирюзовое свечение в толще льда | v144 против v124 |
 | Весь абзац стиля пересказан синонимами (`stylish`, `modern`, `refined`, `premium`, `understated` вместо `beautiful`, `pristine`, `serene`, `atmospheric`), видимые опоры — палитра, туман, материал — оставлены | Вид держится во всех пяти; без `beautiful` не хуже; `sleek`, `modern` — смелее акцент (широкая светящаяся полоса 2 из 3); `large calm surfaces` — крупные ровные плоскости 3 из 3; `editorial design` — собранная вёрстка; без `Swiss` гор нет или едва видны 3 из 3 | v149–v153 против v142 (по 3 прогона) |
-| `Rendered like a high-end architectural visualization.` | Самая спокойная и «дорогая»: ровная вода, чистый свет, ясная композиция | v141 против v124 |
+| `Rendered like a high-end architectural visualization.` | Самая спокойная и «дорогая»: ровная вода, чистый свет, ясная композиция; вместо `3D render` в брифе v170 — светлее и детальнее, прожилки во льду | v141 против v124; v177 против v170 |
 | `Understated and matte: desaturated colors, soft shadows, nothing glossy.` | Мягче и приглушённее; акцент остаётся ярким | v140 против v124 |
 | `The restraint of a luxury car print advertisement.`, `Like a page from a private bank's printed brochure.`, `Like the dust jacket of a serious hardcover book.` | Предметов жанра нет (машины, бумаги, книги); почти без эффекта — у автомобильной рекламы лёд глянцевее | v142, v143, v145 против v124 |
 | `Every detail barely visible, softened by distance and fog.` | Мягче только даль; вблизи детали те же | v146 против v124 |
@@ -199,6 +199,8 @@ aliases: ["кодекс имдж", "codex image", "Sunburst", "уроки про
 | `elegant wide-spaced white sans-serif capitals` | Строгий шрифт с разрядкой, стабильно | v1, v2, v8–v29 |
 | `the text set large on the left` | Текст не крупнее | v28 |
 | Шрифт назван только у заголовка, у подписей — нет | Шрифт подписей гуляет между прогонами: с разрядкой, обычный, с засечками | v79-r2, r3, r4 |
+| Правка готового баннера: `Change only the typeface … to Jost` с описанием букв, `Keep everything else unchanged` | Шрифт сменился на Jost-подобный, фон, свет и расположение строк сохранились; заголовок тоньше настоящего Jost Light | v165-r3-jost-a, 1 прогон |
+| То же + Image 2 — образец этих строк, набранный настоящим Jost (Pillow), `a typeface reference only` | Начертание и толщина ближе к образцу, фон не перенёсся; описание `single-storey a` неверно для Jost, модель дала двухэтажную, как в образце | v165-r3-jost-b, 1 прогон |
 
 ### Композиция
 
