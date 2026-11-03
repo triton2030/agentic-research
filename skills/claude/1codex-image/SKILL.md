@@ -16,13 +16,19 @@ a Codex thread only when he names it (`1t3`).
 
 The model thinks: steer it like an agent, with goals, not drawing orders —
 working out order, size, accents and colors is the design work the owner
-uses it for. A brief is built from modules:
+uses it for. The owner's idea — the concept, the feeling, the story — stays
+in the chat as context for you; the brief is prompt engineering. A stated
+concept is drawn literally (`something hot lies deep in the ice` → a bright
+orange object), so pick each word by the image it gave in the lessons, even
+a word that sounds off-goal (`3D render` did not make a game).
 
-- task — what the image is, what it is for, what must be in it, as a list;
-- style — the approved look in one paragraph; it carries over word for word
-  to other tasks, and what it names becomes a motif there too;
-- the owner's invariants — what he pinned or reacted to, in the cheapest
-  words.
+A brief is built from modules, each a section that can change alone: style
+(genre phrase included — it sets the look), subject, content (what this image
+is about, exact text, empty space) and the owner's invariants in the
+cheapest words. Change only the subject and the camera moves while the look
+stays; change only content and size and every material keeps one look, each
+aspect ratio recomposed. Prose or sections give the same image, but a
+section named `Text:` or `Content:` invites icons next to labels.
 
 The modules leak: the opening phrase and any place or genre word set style
 too. Every word pulls a meaning with it, and the strongest one spreads over
@@ -36,16 +42,25 @@ text checked letter by letter and no invented claims about the product.
 
 What each phrase did, next to what and in how many runs, is kept in
 `~/Documents/GitHub/agentic-research/knowledge/модель/gpt-image-2.5-sunburst-2026-09-08.md`.
-Its strongest lessons (2026-11, about 80 banners):
+Its strongest lessons (2026-11, about 170 banners):
 
-- Nouns decide form and material, adjectives tune, bans weigh least: `a block
-  of translucent ice` gave an ice object, `glacier` gave rock, `levitating`
-  the whole object floating.
-- Genre and place words bring their typical picture wherever they stand: `the
-  cover of an annual report` — light, editorial, small type; `poster` — a big
-  headline; `Swiss` — the Alps, three times out of three.
-- It reads literally: a simile draws its image (`like an ember`); abstract
-  wishes (`no drama`, `the ice holds the fire`) change nothing visible.
+- Nouns decide form and material, bans weigh least: `a block of translucent
+  ice` gave an ice object, `glacier` gave rock, `levitating` the whole object
+  floating. Style sentences about light, palette and material weigh as much
+  as nouns, each owning one dimension — remove them one at a time to see
+  which.
+- Genre and place words bring their typical picture: `poster` — a big
+  headline; `Swiss` — the Alps, every time. A genre needs room: `the cover of
+  an annual report` gave a light editorial page only when the subject did not
+  fill the frame. Genres with a known calm look work (`a high-end
+  architectural visualization`, `an Apple product page`); a brand or print
+  genre (`a luxury car advertisement`, `a printed brochure`) brought neither
+  its object nor a change.
+- It reads literally: a simile draws its image (`like an ember`). Visible
+  words work, evaluations do not: `beautiful`, `calm`, `barely visible`, `low
+  detail` change little, and `low contrast` and `low detail` are drawn as pale
+  haze that lightens the image. For soft and dark together, name the tones and
+  the fog: `deep, muted midtones`, `the fog is a deep, dense blue-grey`.
 - The accent's color sets the mood — red lava read as menace, golden-amber as
   warmth; its strength is a ladder (`barely visible` → `quiet glow` → `narrow
   crack` → `seam` → `molten`); `the only warm color and the only strong
@@ -53,14 +68,20 @@ Its strongest lessons (2026-11, about 80 banners):
 - One sentence can move the whole picture: `The whole picture is low in
   contrast: muted tones, no deep blacks, no bright highlights, no visible
   sun.` Words of purity (`pristine`, `pure`) brighten it and bring a sun.
-- Every line takes room: a background line shrinks the subject; a list or a
-  `Text:` section gets icons; an unnamed slot gets a default — daylight,
-  decorative letters, scenery.
+- Every line takes room: a background line shrinks the subject; an unnamed
+  slot gets a default — daylight, decorative letters, scenery. Silence gives
+  the genre's stock picture, not variety: a brief of feelings alone drew one
+  scene four times out of five; variety comes from different named nouns.
+  Words of distance move the camera (`far below` turned a close wall into a
+  view down a chasm).
 - Quoted text comes out exact, Russian too; a computed number may not. Across
   repeats, what is named holds; layout, sun and background details vary.
 
-A spec — positions, pixels, a color per element — gets its bare skeleton
+A spec — positions in pixels, a color per element — gets its bare skeleton
 back; in the owner's experience, the longer the brief, the worse the image.
+One sentence of layout is different: `Composition: all text on the left
+third, stacked` or `a large, calm, empty area on the right third` was obeyed
+every time and kept the picture rich.
 
 ## Task
 
@@ -76,41 +97,48 @@ keeps, what he reacted to. Everything else stays the model's choice.
 
 ## When you write a brief
 
-English, 60–200 words, growing only with the number of items:
+English, 60–200 words, growing only with the number of items. Sections in
+this order make the brief easy to change one part at a time:
 
-1. Task: what it is and where it will be used — this sets genre and polish;
-   name the genre when it matters (`the cover of an annual report`, `It should
-   look like a real, well-designed, beautiful app`).
-2. Style: mood, palette and, when the look depends on it, light — dark or
-   bright, and its source. An approved style paragraph is reused word for
-   word.
-3. `It should include:` — things as nouns, not places; the main one gets a
-   hierarchy word.
-4. Exact text in quotes, in its own language, with its typeface in words:
-   `each line exactly as quoted and only once`.
-5. Output: `Flat finished artwork, full bleed` or `Flat screenshot of the app
-   window only, no device frame`.
+1. Style: genre and use (`the cover of an annual report`, `It should look
+   like a real, well-designed, beautiful app`), mood in visible words,
+   palette, and light — dark or bright, and its source. An approved style
+   block is reused word for word.
+2. Subject: the object or scene as nouns, with distance words (`seen up
+   close`); the main one gets a hierarchy word.
+3. Content: what this image is about; exact text in quotes, in its own
+   language, with its typeface in words for every line — an unnamed line
+   changes font between runs; empty space for text or a logo, if needed.
+4. Constraints, last: `All text in English, each line exactly as quoted and
+   only once, no other text.` — or, for a background to lay text on later,
+   `No text, letters, numbers, logos or watermarks anywhere.` — then `Flat
+   finished artwork, full bleed` or `Flat screenshot of the app window only,
+   no device frame`.
 
 Where something sits or how many pixels it takes, write only if the owner
 dictated it, in his words.
 
-The owner's favorite of the series (v62):
-
 ```text
-Create the cover of an annual report that sums up the first week of PERMAFROST, a Bitcoin DeFi launch by Subfrost: seven days, four upgrades.
+Style:
+- The cover of an annual report by a serious financial company.
+- <mood and restraint in visible words>
+- <light, palette, and the colour of fog or background>
+- <material of the subject>
+- A clean minimalist 3D render.
 
-Make it beautiful: the quiet authority of a conservative Swiss private bank that has guarded old family fortunes for generations. Serene, pristine and pure: minimal, quiet, very few details. Softly lit, calm and atmospheric, in cool steel blue and soft turquoise, wrapped in thick soft fog. Clean, translucent ice with almost no texture. A clean minimalist 3D render.
+Background:
+- <the subject, seen up close, filling most of the frame>
+- <the one accent: its form, colour and strength>
 
-It should include:
-- a giant block of clear translucent ice seen up close, filling most of the frame
-- behind it, a vast glacier on endless permafrost, fading into the mist
-- a deep crack inside the ice glowing hot red-orange, lighting the ice from within
-- the headline "PERMAFROST" as the largest element, in elegant wide-spaced white sans-serif capitals
-- "7 DAYS / 4 UPGRADES"
-- four short labels: "More ways to deposit", "Precise boost", "Safe bonding", "Flexible farms"
+Content:
+- the subject: <what this image is about>
+- the headline "<TEXT>" as the largest element, in <typeface in words>
+- "<second line>" in <typeface in words>
 - a calm empty corner for a logo
 
-All text in English, each line exactly as quoted and only once, no other text. Flat finished artwork, full bleed.
+Constraints:
+- All text in English, each line exactly as quoted and only once, no other text.
+- Flat finished artwork, full bleed.
 ```
 
 ## When the image misses or the owner reacts
@@ -128,7 +156,9 @@ questions, a removal test for a suspected word. Change a brief the owner
 liked one line at a time: its "contradictions" may be working — `pure`, fog
 and `atmospheric` made a luminous haze that an eight-line cleanup lost.
 Repeat a winner two or three times; what he liked that does not repeat — the
-layout, the sun — name in the brief or edit from that image.
+layout, the sun — name in the brief or edit from that image. "Darker" or
+"softer" is judged by numbers, not by eye: the mean and the spread of the
+grey channel (Pillow `ImageStat`); one brief drifts about ±5 of 255.
 
 After a series, add to the lessons file what each phrase gave, under what it
 controls: the phrase, the effect with what it dragged along, the brief it
