@@ -141,6 +141,15 @@ Constraints:
 - Flat finished artwork, full bleed.
 ```
 
+## When you design a page or a screen
+
+Read [designs.md](references/designs.md) before the brief: what each kind of
+input image does, which roles a reference obeys, the sentences that changed
+layout, look and type size, and what the model invents there. Its core: a
+screenshot of the live screen carries its content, so the brief names only
+what changes; a reference carries color, light and material, not its layout;
+the layout moves with one `Composition:` sentence.
+
 ## When the image misses or the owner reacts
 
 Read the lessons file first: it may already hold the words for this
@@ -163,15 +172,18 @@ grey channel (Pillow `ImageStat`); one brief drifts about ±5 of 255.
 After a series, add to the lessons file what each phrase gave, under what it
 controls: the phrase, the effect with what it dragged along, the brief it
 stood in and the number of runs; a row a new run confirms or contradicts is
-updated, not doubled. Commit it in `agentic-research`.
+updated, not doubled. Commit it in `agentic-research`. Lessons of a page or
+screen series go to designs.md instead, in the package owner
+`~/Documents/GitHub/agentic-research/skills/claude/1codex-image/`, then
+`skills/shared/sync_simple_projections.py 1codex-image --write --install`:
+an edit of the installed copy alone is lost at the next sync.
 
 ## When you start from an existing image
 
 Number the inputs with a role each (`Image 1 is the approved poster — edit
-it`, `Image 2 is a style reference only`; a style reference brings its
-composition too, and a person keeps the reference's pose unless you name a
-new one). Write the target state, then `Keep everything else
-unchanged:` and what must stay, earlier edits included.
+it`, `Image 2 is a style reference only`); a person keeps the reference's
+pose unless you name a new one. Write the target state, then `Keep everything
+else unchanged:` and what must stay, earlier edits included.
 
 The model redraws the whole picture and drifts with each chained edit: edit
 from the last approved version, paste exact pixels back locally. Name what
