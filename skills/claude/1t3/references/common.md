@@ -19,6 +19,13 @@ just stops. The rules here and in the branch file close these gaps.
 Every thread's answer is read and accepted from disk; from the title the
 owner sees what his quota went on; other agents' threads stay untouched.
 
+## Limits on both routes
+
+- An auditor, adviser or reader leaves `git status` as it was; if it
+  changed, the agent edited against the brief or a neighbour wrote nearby.
+- Others' threads: read freely; message, interrupt, archive or pin only at
+  the owner's request.
+
 ## When choosing model options
 
 Option ids come from `orchestrator_capabilities`, on either route.
@@ -94,8 +101,6 @@ caller.
 | What you see | Move |
 | --- | --- |
 | no answer | tell the owner it didn't answer and why; never substitute your own or another model's |
-| no `mcp__t3__*` tools | `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3773/mcp`: `401` — alive, check this environment's sign-in, then a fresh session; connection error — ask the owner to open T3 |
-| `capability_denied` | sign-in expired (30 days per the docs) or is read-only: the owner runs `claude mcp login t3` and picks full access |
 | `thread_credential_required` | the tool works only inside a thread (`preview_*`, `device_*`, `html_render`, `delegate_task`, `t3_worktree_status`): give it to a thread as a task |
 | model missing even with `search`, or `does not exist or you lack access` | the model left the subscription; the owner picks a replacement |
 | Cursor: `not included in your weekly usage` | the model is outside the owner's plan, as GLM 5.3 Flash |

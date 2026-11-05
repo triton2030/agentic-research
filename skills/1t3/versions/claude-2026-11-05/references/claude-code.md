@@ -100,8 +100,6 @@ message: `~/.t3/bin/t3 thread show '<threadId>' --messages 1` (plain text;
   against the brief and every message you sent;
 - the `checkpoint` entry lists every changed file in the folder, neighbours'
   included, and misses files outside it;
-- an auditor, adviser or reader leaves `git status` as it was; if it
-  changed, the agent edited against the brief or a neighbour wrote nearby.
 
 ## When continuing
 
@@ -131,6 +129,9 @@ settled: it leaves `t3_thread_list` (`settled: true` finds it, and an
 archived or settled thread reads in full by `threadId`), and cleanup may
 delete its worktree with ignored files like `.env`.
 
-Others' threads: read freely; message, interrupt, archive or pin only at the
-owner's request.
+## When the `t3` server fails
 
+| What you see | Move |
+| --- | --- |
+| no `mcp__t3__*` tools | `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3773/mcp`: `401` — alive, check this environment's sign-in, then a fresh session; connection error — ask the owner to open T3 |
+| `capability_denied` | sign-in expired (30 days per the docs) or is read-only: the owner runs `claude mcp login t3` and picks full access |
