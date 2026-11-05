@@ -86,3 +86,4 @@ description: "История скила 1t3: треды Muse, Gemini и Grok ч�
   карта — `cut.md`.
 - `versions/claude-2026-11-03/` — уроки сессии Subfrost: Claude-тред и фоновые проверки, ответ на вопрос исполнителя, `scripts/wake_on_any.sh` для нескольких тредов — `work/session-lessons-2026-11-03.md`.
 - `work/inside-t3-2026-11-05/README.md` — развилка «внутри T3 / из Claude Code» в теле, остальное в references; снимок `versions/claude-2026-11-05/`.
+- `work/worktree-cleanup-2026-11-05/README.md` — уборка рабочих копий исполнителей после приёмки: условие владельца, проба и ревью.

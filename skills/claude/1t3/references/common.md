@@ -77,6 +77,16 @@ and per the docs Meta may train on it by default.
 - Muse `muse-wonder-full-1.0` at `xhigh`: an edit with tests took two
   minutes, an audit of several files about nine.
 
+## When a child's worktree is done
+
+A child run in its own worktree leaves the worktree and its branch behind;
+each holds a full dependency copy, and in one project they filled 170 GB by
+2026-11-05. Remove both, by the project's landing script when it has one,
+only when you are sure the work there is finished and the branch will not be
+needed again (owner, 2026-11-05): its result is in the main branch or was
+dropped for good, the worktree has no uncommitted changes, and no follow-up,
+in that thread or any other work, will build on it.
+
 ## When quota matters
 
 Before big work on another subscription, after a quota refusal, and at the
