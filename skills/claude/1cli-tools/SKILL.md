@@ -57,8 +57,9 @@ description: >-
   в receipt `uv tool`: подсказку uv обновить его без владельца не выполняй.
 - **Скрипты зависимостей.** npm 12 и pnpm 11+ блокируют install-скрипты
   зависимостей, а install завершается успехом. npm:
-  `npm approve-scripts --allow-scripts-pending` покажет заблокированное
-  (пусто — причина другая), подробности — `npm help approve-scripts`.
+  `npm install-scripts ls` (npm 12.2) или `npm approve-scripts
+  --allow-scripts-pending` покажет заблокированное (пусто — причина другая),
+  подробности — `npm help install-scripts`.
   pnpm: `pnpm ignored-builds`, затем `pnpm approve-builds PKG` (без аргумента
   интерактивен, `--all` снимает защиту целиком).
 - **pnpm 11+.** Настройки — в `pnpm-workspace.yaml`: поле `pnpm`
@@ -83,6 +84,12 @@ description: >-
   [миграция](https://duckdb.org/docs/2.0/operations_manual/migration.html).
 - **Глобальный `tsc` 7** вне проекта: `strict`, `target es2025`,
   `esModuleInterop` включены по умолчанию.
+- **dependency-cruiser 18** выкидывает из графа импорты, которые TypeScript
+  удалит при компиляции: неиспользуемые и только для типов. Граница, которую
+  держит проверка, без `options.tsPreCompilationDeps: true` пропускает такой
+  импорт, и «посаженное» нарушение не роняет проверку. После включения циклы,
+  замкнутые импортом типа, снимает правило `to: { circular: true, viaOnly:
+  { dependencyTypesNot: ["type-only"] } }`.
 - **ast-grep 0.50+** молча пропускает custom languages из `sgconfig.yml`:
   `--custom-languages allow`.
 - **`vercel setup`** ставит плагин в агентов и скил в `~/.agents/skills`
