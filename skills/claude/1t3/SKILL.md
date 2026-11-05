@@ -50,8 +50,9 @@ owner sees what his quota went on; other agents' threads stay untouched.
   ledger of his quota.
 - Always set `runtimeMode`: otherwise the project default applies, and at an
   approval level the thread waits for consent nobody gives.
-- Codex runs only `gpt-6.1-sol` at `reasoningEffort` `high` with
-  `serviceTier` `"default"` (owner, 2026-11-05). Changing the tier mid-turn
+- Codex `reasoningEffort` is `high`, never `max` (owner, 2026-11-05).
+  `serviceTier`: `"default"` for `gpt-6.1-sol`; `"priority"` (Fast) for
+  `gpt-6.1-terra`, which is cheap (owner, 2026-11-02). Changing it mid-turn
   interrupted the turn.
 - The model name isn't validated: a wrong one fails the first turn within
   seconds with `does not exist or you lack access`. The model an agent names
