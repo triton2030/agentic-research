@@ -4,6 +4,8 @@
 # Always exits 0: a failing !`...` command aborts the whole skill load.
 
 tools=(node npm pnpm tsc duckdb rg gh vercel ast-grep depcruise python3)
+# Without timeout one hanging tool would hold the skill load indefinitely.
+command -v timeout >/dev/null 2>&1 || { echo "версии не сняты: нет timeout"; exit 0; }
 tmp=$(mktemp -d) || { echo "версии не сняты"; exit 0; }
 
 for i in "${!tools[@]}"; do
@@ -12,12 +14,10 @@ for i in "${!tools[@]}"; do
     if ! command -v "$t" >/dev/null 2>&1; then
       echo "$t нет" > "$tmp/$i"; exit
     fi
-    if command -v timeout >/dev/null 2>&1; then
-      out=$(timeout 5 "$t" --version 2>&1)
-    else
-      out=$("$t" --version 2>&1)
-    fi
-    if [[ $out =~ ([0-9]+\.[0-9]+(\.[0-9]+)?) ]]; then
+    # A number is taken only from a successful --version: error text such as
+    # "requires Node.js >=22.18.0" also contains one.
+    if out=$(timeout 5 "$t" --version 2>&1) &&
+      [[ $out =~ ([0-9]+\.[0-9]+(\.[0-9]+)?) ]]; then
       line="$t ${BASH_REMATCH[1]}"
     else
       line="$t ошибка"

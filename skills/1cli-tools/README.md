@@ -9,3 +9,4 @@
 - `origin.md`, `cut.md`, `evidence.md` — история через версии. Их копии
   в папке владельца расходятся с этими и не дописываются.
 - 2026-11-05: `npm install-scripts ls` (npm 12.2.1, проверено `npm install-scripts --help`) рядом с `approve-scripts`; ловушка dependency-cruiser 18.7 с удаляемыми TypeScript импортами (проба: неиспользуемый импорт пропал из графа без `tsPreCompilationDeps`, появился с ним). Найдено в работе над subfrost-banner-maker.
+- 2026-11-09: Claude-версия — живая строка версий при загрузке (`scripts/versions.sh` через `!`), ловушки одной работы — в трёх `references/`, тело ≈ 4 тыс. токенов; запись про LSP TypeScript. Версия до правки — [versions/tracked-owner-2026-11-09/](versions/tracked-owner-2026-11-09/SKILL.md), ход, проверка и проба — [work/live-versions-2026-11-09.md](work/live-versions-2026-11-09.md).
