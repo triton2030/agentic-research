@@ -1,6 +1,6 @@
 {
   "name": "skill-gallery",
   "version": "0.3.0",
-  "description": "A pane listing skills in sections; a click puts /skill-name into the prompt box",
+  "description": "An always-visible row of dropdowns above the prompt box, one per skill folder: a pick puts /skill-name or @agent-name into the prompt. /skill-gallery opens a side pane with favorites. Used by mouse, so plugin usage counters show zero.",
   "types": "./types/index.d.ts"
 }
