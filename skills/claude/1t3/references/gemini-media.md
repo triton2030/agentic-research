@@ -1,8 +1,15 @@
 # Audio, video and PDF through Gemini
 
-A Gemini thread can't hear or see; the Antigravity CLI can, and
-`scripts/gemini.py` wraps it. It needs no T3 Code and also reads files
-outside a project.
+A Gemini thread hears and sees only what is attached to its message:
+`t3_attachment_prepare_upload`, the file's bytes POSTed to
+`http://127.0.0.1:3773` plus the returned `relativeUrl`, then `attachments`
+on `t3_thread_launch` or `t3_thread_send_attachments`. From plain Claude Code
+an image reached Gemini Flash this way (2026-11-09); per the T3 docs audio,
+PDF and MP4 up to 20 MiB arrive too (not tried). A file its tools open by
+path stays unseen.
+
+`scripts/gemini.py` wraps the Antigravity CLI instead: it needs no T3 Code,
+opens files by path, also outside a project, and takes the flags below.
 
 ```bash
 python3 "<skill-dir>/scripts/gemini.py" --dir /absolute/folder <<'BRIEF'

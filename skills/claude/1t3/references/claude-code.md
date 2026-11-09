@@ -32,8 +32,10 @@ its turn ends or know which agent launched it.
 - The thread works in the project root, next to other threads. Before a
   writing thread check `t3_thread_list` with `statuses: ["running"]` and give
   it a zone nobody edits, or `workspaceStrategy` `worktree`: that copy lacks
-  uncommitted edits and ignored files like `node_modules`, and the project's
-  `runOnWorktreeCreate` did not run — put setup into the brief.
+  uncommitted edits and ignored files like `node_modules`. Per T3's code, the
+  project's `runOnWorktreeCreate` script prepares it before the agent starts
+  (one run on 2026-10-30 saw no setup); `t3_project_list` shows the scripts,
+  and the brief carries only the setup they don't do.
 - Keep the `threadId` from the response. All the owner's Claude sessions sign
   in as one client and see each other's threads, and titles look alike: the
   id is the only proof the thread is yours. Give the owner the response's

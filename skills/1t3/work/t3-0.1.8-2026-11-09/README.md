@@ -1,8 +1,8 @@
 # Сверка с T3 Code 0.1.8-nightly, 2026-11-09
 
 **Граница.** Адресная правка Claude-версии: `references/common.md` и
-`references/claude-code.md`. `SKILL.md`, `inside-t3.md`, `gemini-media.md` и
-скрипты не менялись. Codex-версия `skills/codex/1t3-codex/` не тронута: она
+`references/claude-code.md`, после проверяющего — ещё `gemini-media.md`.
+`SKILL.md`, `inside-t3.md` и скрипты не менялись. Codex-версия `skills/codex/1t3-codex/` не тронута: она
 отстала с 2026-10-28 и требует отдельной переработки. Снимок —
 `../../versions/claude-2026-11-09/`; прежнее состояние — `claude-2026-11-05`
 плюс раздел из `2026-11-05-before-worktree-cleanup` и git.
@@ -47,3 +47,11 @@
 
 `1orchestration` (Claude): правка 2026-11-06 жила только в установленном
 пакете; перенесена в tracked owner — `skills/1orchestration/README.md`.
+
+## Проверка
+
+- Проба `new-a` (Sonnet `high`, песочница `probe.py`, без вызовов T3): «отдай Codex Sol тикет в своей копии, продолжим завтра». Порядок по транскрипту: `SKILL.md` → `common.md` → `claude-code.md` → таблица `1orchestration`. Взял `max` и `serviceTier: default` из таблицы, `full-access` с доводом «ниже ждёт согласия»; к завтра учёл settled через `sidebarAutoSettleAfterDays` и поиск `settled: true` или по `threadId`; копию не удаляет; на `runtime_mode_escalation_denied` — перелогин с Full access, права не понижает.
+- Проверяющий другой семьи: тред Codex `gpt-6.1-sol/max`, запущен по самому скилу в копии `/tmp/t3review/review-wt` на `e0abc3f5`; `threadId` `mcp:launch:20a66ec2bcf660dc493d7c467c59c351243a58fab506bcad2b8481a530c971b8`, 558 с. В изменённых строках ошибок не нашёл; `git status` копии остался пустым. Две находки в нетронутых местах, обе приняты:
+  - «A Gemini thread can't hear or see» (`gemini-media.md`, строка Gemini в `common.md`) — неверно для вложений: `docs/user/providers-antigravity.md` («receives images and audio directly…»). Замер: картинка 8×8 через `t3_attachment_prepare_upload`, POST на `http://127.0.0.1:3773` + `relativeUrl` (HTTP 204) и `attachments` в `t3_thread_launch` дошла до Gemini Flash — ответ «Красный», тред `mcp:launch:392943319fe4641bb8547ce52b18c17f1d8d6e6ab17e1e0d3f0e4cae5e6be93a`. Аудио, PDF и видео — по документации. Скрипт остаётся для путей и флагов.
+  - «`runOnWorktreeCreate` did not run» (`claude-code.md`) — по коду T3 `c6ca605` `ThreadLaunchService.ts` выполняет скрипт до старта агента (асинхронный — параллельно). Замер 2026-10-30 был один, а скрипт subfrost копирует только `design-catalog/node_modules`; новый замер не делался — в тексте «по коду T3».
+- Снимок после находок — `../../versions/claude-2026-11-09-v2/`. Проба `new-a` эти два места не покрывала: поведение по ним пробой не проверено.

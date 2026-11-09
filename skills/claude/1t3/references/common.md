@@ -63,7 +63,7 @@ and per the docs Meta may train on it by default.
 | | Can't | Writes outside the folder | Owner's skills | Message into a running turn |
 | --- | --- | --- | --- | --- |
 | Muse | open PDF, audio, video | yes | with his personal rules | taken into the same turn |
-| Gemini | hear or see — media go to the script below; its tools read and write only inside the project folder — other folders go to the script with `--add-dir` | only via shell | no | cancels and restarts; did the first correction halfway |
+| Gemini | hear or see a file by path — attach it to the message or use the script below; its tools read and write only inside the project folder — other folders go to the script with `--add-dir` | only via shell | no | cancels and restarts; did the first correction halfway |
 | Grok | X search; audio, video, PDF by its tool description | yes | skills only | not measured |
 | Codex | native diff review, reading your transcript — the bridge `~/Documents/GitHub/agentic-research/experiments/codex-bridge` does | yes | with his personal rules and a tool that calls Claude | taken into the same turn |
 
