@@ -7,6 +7,7 @@ description: >-
   agent-browser, vercel, gh, uv tool or ffmpeg; and when an install succeeds
   but a package fails. Lists what is installed on this Mac and where familiar
   commands silently break. Markdown corpus search belongs to 1md-search.
+allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/versions.sh)
 ---
 
 # CLI На Этом Mac
@@ -14,8 +15,14 @@ description: >-
 Твоя память не знает, что здесь установлено, и старее этих версий. Здесь —
 только то, чего не скажет `--help`: что есть, где привычное тихо ломается
 и что появилось после твоей памяти. Точный синтаксис — живой `--help`; он
-побеждает этот текст. Сверено 2026-10-31; перед использованием —
-`TOOL --version`: `command -v` не видит сломанную обёртку.
+побеждает этот текст. Перечень сверен 2026-10-31.
+
+Версии сейчас: !`${CLAUDE_SKILL_DIR}/scripts/versions.sh`
+
+Ловушки с номером версии проверены на этом номере: если живая версия ушла
+от него, сверь ловушку по `--help` и предложи правку (раздел «Нашёл
+Расхождение»). Версию инструмента вне этой строки смотри `TOOL --version`:
+`command -v` не видит сломанную обёртку.
 
 ## Что Есть
 
@@ -43,99 +50,44 @@ description: >-
 
 ## Тихие Ловушки
 
-- **PATH.** Старые `/usr/local/bin/node` 22, npm 10 и Vercel 39 лежат рядом
-  с active в `/opt/homebrew`; первым стоит `~/.local/bin/node` — ссылка на
-  отдельный бинарь nodejs.org в `~/.local/share/node/vX/bin/`. Homebrew его
-  не обновляет, кто поставил — не записано. Меняй только по просьбе владельца,
-  до версии `/opt/homebrew/bin/node`: `bin/node` из
-  `node-vX-darwin-arm64.tar.xz` (сверь `SHASUMS256.txt`) в новую папку
-  версии, затем `ln -sfn`. Проверяй
-  `which -a` и `realpath`. Проектный pin (`engines`, `.nvmrc`) сильнее
-  глобального и сам runtime не переключает.
-- **Локальные сборки.** `md-tools` (uv editable), `qv-skill`, `plugin-eval`
-  не заменяй одноимёнными пакетами из registry. `graphify` закреплён `==0.9.73`
-  в receipt `uv tool`: подсказку uv обновить его без владельца не выполняй.
-- **Скрипты зависимостей.** npm 12 и pnpm 11+ блокируют install-скрипты
-  зависимостей, а install завершается успехом. npm:
-  `npm install-scripts ls` (npm 12.2) или `npm approve-scripts
-  --allow-scripts-pending` покажет заблокированное (пусто — причина другая),
-  подробности — `npm help install-scripts`.
-  pnpm: `pnpm ignored-builds`, затем `pnpm approve-builds PKG` (без аргумента
-  интерактивен, `--all` снимает защиту целиком).
-- **pnpm 11+.** Настройки — в `pnpm-workspace.yaml`: поле `pnpm`
-  в `package.json` и не-auth ключи `.npmrc` молча игнорируются; пакет моложе
-  суток не ставится → [релиз 11](https://github.com/pnpm/pnpm/releases/tag/v11.0.0).
-- **`brew upgrade node`** может вернуть комплектный npm поверх нового: после
-  него проверь `npm --version` и поставь свежий npm обратно.
-- **Конфликт версий.** Если две active версии конфликтуют, pin
-  проекта не требует старую и менеджеры предлагают обновить обе — обнови обе
-  одним проходом, затем повтори обе `--version` и упавшую команду; так решил
-  владелец.
-- **`uv tool`.** Окружение на Python из Homebrew ломается со сменой его
-  minor-версии (`environment not found`). `uv tool install NAME --reinstall`
-  забывает прежние `--with`: возьми их из `~/.local/share/uv/tools/NAME/uv-receipt.toml`.
-  `uv tool audit` без lockfile падает; без переустановки окружение проверяет
-  `pip-audit --path <site-packages окружения>`.
-- **DuckDB 2.0** в сессии агента печатает Markdown: результат больше 1000 строк
-  или 10 тыс. байт — только первые и последние строки, ячейка — до 500 знаков,
-  ошибки — JSON в stderr. Все данные — `-csv` или `-json`; подробности —
-  `duckdb -c '.help agent'`. `~` и `!~` теперь ищут частичное
-  совпадение — старые запросы молча меняют результат →
-  [миграция](https://duckdb.org/docs/2.0/operations_manual/migration.html).
-- **Глобальный `tsc` 7** вне проекта: `strict`, `target es2025`,
-  `esModuleInterop` включены по умолчанию.
-- **TypeScript в LSP Claude Code.** Официальный плагин `typescript-lsp`
-  выключен: его `typescript-language-server` работает через
-  `lib/tsserver.js`, а в TypeScript 7 его нет. Вместо него стоит сторонний
-  `typescript-native-lsp@typescript-native-lsp`. Проект на TS 7, без
-  `node_modules` или без TS он обслуживает родным `tsc --lsp` (подходит
-  глобальный TS 7), проект с TS ≤6 — через `typescript-language-server`
-  с TS проекта. Тот лежит в `~/.local/share/typescript-language-server`,
-  в `~/.local/bin` — ссылка. Что плагин запустит в проекте — `node
-  <installPath>/scripts/launch.mjs --resolve` из его папки, `installPath`
-  даёт `claude plugin list --json`. Оба плагина сразу не включай: на одни
-  расширения стартует только один. Автообновление стороннего каталога
-  выключено: `claude plugin update typescript-native-lsp@typescript-native-lsp`
-  и `npm update --prefix ~/.local/share/typescript-language-server`. Когда
-  официальный научится TS 7
-  ([#4492](https://github.com/anthropics/claude-plugins-official/issues/4492)),
-  сторонний можно снять.
-- **dependency-cruiser 18** выкидывает из графа импорты, которые TypeScript
-  удалит при компиляции: неиспользуемые и только для типов. Граница, которую
-  держит проверка, без `options.tsPreCompilationDeps: true` пропускает такой
-  импорт, и «посаженное» нарушение не роняет проверку. После включения циклы,
-  замкнутые импортом типа, снимает правило `to: { circular: true, viaOnly:
-  { dependencyTypesNot: ["type-only"] } }`.
-- **ast-grep 0.50+** молча пропускает custom languages из `sgconfig.yml`:
-  `--custom-languages allow`.
-- **`vercel setup`** ставит плагин в агентов и скил в `~/.agents/skills`
-  мимо `npx skills` — согласуй с владельцем.
+Ловушки отдельных работ — в справках. Открой справку до первой команды
+своей работы:
+
+- ставишь, обновляешь или чинишь пакет, runtime или CLI — npm, pnpm, uv,
+  brew, node, PATH —
+  [установка-и-обновление.md](references/установка-и-обновление.md): там
+  случаи, когда установка проходит успешно, а пакет не работает или затирает
+  чужое;
+- запускаешь или проверяешь TypeScript — `tsc`, LSP-плагин TypeScript,
+  dependency-cruiser, вывод `npm run` и `npx` —
+  [javascript-и-typescript.md](references/javascript-и-typescript.md);
+- запрашиваешь DuckDB, в том числе по транскриптам Claude —
+  [данные.md](references/данные.md).
+
+Остальные ловушки:
+
 - **Shell инструмента Bash — bash 5**, не zsh: `setopt` и `${f:t}` молча
   не работают, пустой глоб остаётся строкой; проверка — `compgen -G`, пути
   с пробелами — `-z | xargs -0`. Перед массовым `mv`/`rm` выведи список.
-- **`gdu`** — GNU `du` из coreutils; размеры — `ncdu`.
-- **Mole** (`mo clean`, `purge`, `installer`) удаляет мимо Корзины, первый
-  запуск — `--dry-run`. `~/.npm/_npx` и `~/.cache/uv` — место запуска
-  MCP-серверов: до чистки `pgrep -fl 'npx|uvx'`.
-- **`md search`** шлёт запрос и изменения корпуса во внешний embedding endpoint.
-- **Длинные строки.** Абзац Markdown — часто одна строка: `cut -c` прячет
-  конец, `rg -M 300 --max-columns-preview` помечает обрезанное.
 - **`rg` без пути** читает stdin: в оболочке агента он открыт, и поиск
   висит до тайм-аута. Всегда давай путь: `rg x .`.
 - **`rg` и дефис** (15.2). `-h` — краткая справка, а не «без имени файла»:
   это `-I` (`--no-filename`). Образец с `-` в начале, например Matrix event id
   без `$`, читается как флаг: `rg -F '-x' f` молча даёт exit 1. Пиши
   `rg -e "$x"` или `rg -- "$x" f`.
+- **Длинные строки.** Абзац Markdown — часто одна строка: `cut -c` прячет
+  конец, `rg -M 300 --max-columns-preview` помечает обрезанное.
+- **ast-grep 0.50+** молча пропускает custom languages из `sgconfig.yml`:
+  `--custom-languages allow`.
+- **`gdu`** — GNU `du` из coreutils; размеры — `ncdu`.
+- **Mole** (`mo clean`, `purge`, `installer`) удаляет мимо Корзины, первый
+  запуск — `--dry-run`. `~/.npm/_npx` и `~/.cache/uv` — место запуска
+  MCP-серверов: до чистки `pgrep -fl 'npx|uvx'`.
+- **`md search`** шлёт запрос и изменения корпуса во внешний embedding endpoint.
 - **`lychee`** вызывай напрямую: через `npx` вывод засоряют `npm notice`.
 - **`gh issue view N --comments`** (2.103) печатает только комментарии, без тела
   задачи; у задачи без комментариев — пустой вывод. Тело и комментарии вместе —
   `gh issue view N --json body,comments`.
-- **npm 12** печатает `npm notice run …` перед каждым `npm run` и `npx`:
-  `npm run -s` их убирает, после `npx` — `rg -v '^npm notice'`.
-- **Транскрипты Claude в DuckDB.** `message.content` — то строка, то массив,
-  `read_json_auto` делает его JSON, и `unnest` падает с Binder Error. Текст
-  ответов — `jq -r 'select(.type=="assistant") | .message.content[]? |
-  select(type=="object" and .type=="text") | .text' <сессия>.jsonl`.
 - **`agent-browser`**: ссылки `@eN` из `snapshot` живут до следующего `open`,
   потом `Unknown ref`. Нажатие по роли переживает перезагрузку:
   `agent-browser find role button click --name "…"`.
@@ -156,3 +108,7 @@ description: >-
 правки этого скила: что увидел и какой командой проверить. Субагент передаёт
 её родителю. Без поручения владельца скил сам не правь: правка глобальная
 и идёт через проверку.
+
+Ловушку одной работы предлагай в её справку, в тело — только нужную любой
+задаче: после сжатия разговора Claude Code возвращает скил обрезанным
+до первых 5 000 токенов, и разросшееся тело теряет конец.
