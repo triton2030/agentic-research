@@ -84,6 +84,15 @@ description: >-
   [миграция](https://duckdb.org/docs/2.0/operations_manual/migration.html).
 - **Глобальный `tsc` 7** вне проекта: `strict`, `target es2025`,
   `esModuleInterop` включены по умолчанию.
+- **`typescript-language-server`** — сервер LSP-плагина Claude Code
+  `typescript-lsp` — работает через `lib/tsserver.js`, а в TypeScript 7 его
+  нет. Поэтому сервер стоит вместе с TS 6 в
+  `~/.local/share/typescript-language-server`, в `~/.local/bin` — ссылка.
+  Проект с TS ≤6 в `node_modules` сервер проверяет этим TS, проект на TS 7
+  или без `node_modules` — запасным TS 6. Обновление —
+  `npm update --prefix ~/.local/share/typescript-language-server`. Команда
+  из README плагина `npm install -g typescript-language-server typescript`
+  здесь не годится: глобальный `typescript` — уже 7.
 - **dependency-cruiser 18** выкидывает из графа импорты, которые TypeScript
   удалит при компиляции: неиспользуемые и только для типов. Граница, которую
   держит проверка, без `options.tsPreCompilationDeps: true` пропускает такой
@@ -104,6 +113,8 @@ description: >-
 - **`md search`** шлёт запрос и изменения корпуса во внешний embedding endpoint.
 - **Длинные строки.** Абзац Markdown — часто одна строка: `cut -c` прячет
   конец, `rg -M 300 --max-columns-preview` помечает обрезанное.
+- **`rg` без пути** читает stdin: в оболочке агента он открыт, и поиск
+  висит до тайм-аута. Всегда давай путь: `rg x .`.
 - **`rg` и дефис** (15.2). `-h` — краткая справка, а не «без имени файла»:
   это `-I` (`--no-filename`). Образец с `-` в начале, например Matrix event id
   без `$`, читается как флаг: `rg -F '-x' f` молча даёт exit 1. Пиши
@@ -112,6 +123,15 @@ description: >-
 - **`gh issue view N --comments`** (2.103) печатает только комментарии, без тела
   задачи; у задачи без комментариев — пустой вывод. Тело и комментарии вместе —
   `gh issue view N --json body,comments`.
+- **npm 12** печатает `npm notice run …` перед каждым `npm run` и `npx`:
+  `npm run -s` их убирает, после `npx` — `rg -v '^npm notice'`.
+- **Транскрипты Claude в DuckDB.** `message.content` — то строка, то массив,
+  `read_json_auto` делает его JSON, и `unnest` падает с Binder Error. Текст
+  ответов — `jq -r 'select(.type=="assistant") | .message.content[]? |
+  select(type=="object" and .type=="text") | .text' <сессия>.jsonl`.
+- **`agent-browser`**: ссылки `@eN` из `snapshot` живут до следующего `open`,
+  потом `Unknown ref`. Нажатие по роли переживает перезагрузку:
+  `agent-browser find role button click --name "…"`.
 
 ## Новое После Твоей Памяти
 
