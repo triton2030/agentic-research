@@ -4,7 +4,7 @@ description: >-
   Use before writing a helper script or choosing a CLI for data, YAML, text
   edits, lint, security, media, browser, disk-space or system-health work;
   before npm or pnpm install/ci, running .ts with node, global tsc,
-  agent-browser, vercel, gh, uv tool or ffmpeg; and when an install succeeds
+  agent-browser, browse, vercel, gh, uv tool or ffmpeg; and when an install succeeds
   but a package fails. Lists what is installed on this Mac and where familiar
   commands silently break. Markdown corpus search belongs to 1md-search.
 allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/versions.sh)
@@ -39,7 +39,7 @@ allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/versions.sh)
 | shell и CI | `shellcheck`, `shfmt`, `actionlint`, `pre-commit`, `just`, `timeout`; `caffeinate -d -i <команда>` — Mac не уснёт, пока идёт прогон |
 | терминал и git | `tmux`, `watch`, `tree`, `direnv exec <папка> <команда>`, `git-lfs` |
 | безопасность | `semgrep`, `gitleaks`, `trufflehog`, `trivy`, `osv-scanner`, `bandit`, `pip-audit` |
-| браузер | `agent-browser` — `read <url>` отдаёт страницу Markdown-ом, сам ищет `llms.txt`; `skills list` — инструкции под эту версию; `a11y`, `vitals`, `react`, `diff`; `playwright` — при нестабильном прогоне трасса и `playwright show-trace` |
+| браузер | `agent-browser` — свой Chromium без окна, для проверки своих страниц: не трогает Chrome владельца; `read <url>` отдаёт страницу Markdown-ом, сам ищет `llms.txt`; `skills list` — инструкции под эту версию; `a11y`, `vitals`, `react`, `diff`. `browse` (OpenCode) — настоящий Chrome владельца через расширение, когда нужны его входы на сайты: `browse execute` выполняет сценарий Playwright с условиями и ожиданиями за один вызов. `playwright` — при нестабильном прогоне трасса и `playwright show-trace` |
 | медиа и документы | `ffmpeg` (VideoToolbox, SVT-AV1, VMAF), `fpcalc`, `pdftotext`, `soffice` |
 | речь в текст | `whisper-cli` — всегда `-m ~/.cache/whisper.cpp/ggml-large-v3-turbo-q5_0.bin -l <язык>`, иначе ищет несуществующую модель и слушает по-английски; VAD — `--vad -vm ~/.cache/whisper.cpp/ggml-silero-v6.2.0.bin` |
 | фото | `cwebp`, `dwebp`; numpy, Pillow, pillow-heif, OpenCV, scipy, scikit-image — в user site Python 3.15: видны с `python3 -P`, не с `-I`; `swiftc -O` с macOS Vision — OCR и вырезание (интерпретатор `swift` не успевает); ImageMagick нет |
@@ -69,6 +69,9 @@ allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/versions.sh)
 - **Shell инструмента Bash — bash 5**, не zsh: `setopt` и `${f:t}` молча
   не работают, пустой глоб остаётся строкой; проверка — `compgen -G`, пути
   с пробелами — `-z | xargs -0`. Перед массовым `mv`/`rm` выведи список.
+- **Дробь через запятую** (bash 5.3). `$EPOCHREALTIME` и `printf '%.2f'`
+  пишут `1,50`, хотя `locale` показывает `C`, и `bc` падает с `Parse error`.
+  Замер времени начинай с `export LC_ALL=C`.
 - **Проектный pin node** (`engines`, `.nvmrc`) сильнее глобального и сам
   runtime не переключает.
 - **`rg` без пути** читает stdin: в оболочке агента он открыт, и поиск
@@ -93,6 +96,12 @@ allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/versions.sh)
 - **`agent-browser`**: ссылки `@eN` из `snapshot` живут до следующего `open`,
   потом `Unknown ref`. Нажатие по роли переживает перезагрузку:
   `agent-browser find role button click --name "…"`.
+- **`browse execute`** (0.0.16) без `--rm` или `--session` на каждый вызов
+  заводит новую сессию и оставляет вкладку в Chrome владельца. Разовый вызов —
+  `--rm`; несколько — `browse session new`, затем `--session <имя>`, в конце
+  `browse session delete <имя>`. `page.screenshot()` снимает окно владельца
+  в полном разрешении экрана: в замере 3392×2046, 5 МБ, 0,9 с;
+  `{type: 'jpeg', scale: 'css'}` — 70 КБ за 0,06 с.
 
 ## Новое После Твоей Памяти
 
