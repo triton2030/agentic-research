@@ -30,7 +30,7 @@ owner sees what his quota went on; other agents' threads stay untouched.
 
 Option ids come from `orchestrator_capabilities`, on either route.
 
-- Codex `reasoningEffort` is `high`, never `max` (owner, 2026-11-05).
+- Codex `reasoningEffort` and the model come from `1orchestration`'s table.
   `serviceTier`: `"default"` for `gpt-6.1-sol`; `"priority"` (Fast) for
   `gpt-6.1-terra`, which is cheap (owner, 2026-11-02). Changing it mid-turn
   interrupted the turn.

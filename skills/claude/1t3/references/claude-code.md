@@ -8,13 +8,13 @@ its turn ends or know which agent launched it.
 
 ```json
 {
-  "title": "Codex gpt-6.1-sol/high · doer · <gist>",
+  "title": "Codex gpt-6.1-sol/<effort> · doer · <gist>",
   "projectId": "<id>",
   "runtimeMode": "full-access",
   "modelSelection": {
     "instanceId": "codex",
     "model": "gpt-6.1-sol",
-    "options": [{"id": "reasoningEffort", "value": "high"},
+    "options": [{"id": "reasoningEffort", "value": "<effort>"},
                 {"id": "serviceTier", "value": "default"}]
   },
   "message": "<brief>"
@@ -26,8 +26,9 @@ its turn ends or know which agent launched it.
   name). Without a project pass `scratch: true`.
 - The title `<agent> <model>/<effort> · <role> · <gist>` is the owner's
   ledger of his quota.
-- Always set `runtimeMode`: otherwise the project default applies, and at an
-  approval level the thread waits for consent nobody gives.
+- Always set `runtimeMode`: otherwise the project default applies. Below
+  `full-access` the thread waits for consent nobody gives; `auto` too, since
+  the provider's review asks about non-routine actions (per the docs).
 - The thread works in the project root, next to other threads. Before a
   writing thread check `t3_thread_list` with `statuses: ["running"]` and give
   it a zone nobody edits, or `workspaceStrategy` `worktree`: that copy lacks
@@ -118,20 +119,26 @@ output is only the error and the agent's text before it is in
 running turn and never steers it; after a T3 restart it errors — wait with
 the watcher on the `threadId`.
 
-A new thread instead: a new round in a thread whose `itemCount` is in the
-hundreds (a 636-item Codex thread checked an old port against an old spec),
-an independent view, stale context, or another family —
-`t3_thread_configure` across providers passes only a selection of messages,
-while a new model or effort within a provider keeps the conversation.
+A new round in a thread whose `itemCount` is in the hundreds (a 636-item
+Codex thread checked an old port against an old spec), or stale context:
+`t3_thread_send` with `freshContext: true`, which starts the agent without
+the thread's earlier context (per its description, not tried), then the
+watcher on the `threadId`; or a new thread. An independent view or another
+family — a new thread: `t3_thread_configure` across providers passes only a
+selection of messages, while a new model or effort within a provider keeps
+the conversation.
 
-Per the docs, a thread idle for three days or with a merged pull request is
-settled: it leaves `t3_thread_list` (`settled: true` finds it, and an
-archived or settled thread reads in full by `threadId`), and cleanup may
-delete its worktree with ignored files like `.env`.
+A thread idle for the days in `sidebarAutoSettleAfterDays`
+(`~/.t3/userdata/settings.json`; the owner's 1 on 2026-11-09, default 7), or
+whose pull request merged or closed, is settled: it leaves `t3_thread_list`
+(`settled: true` finds it, and an archived or settled thread reads in full by
+`threadId`). Per the docs, T3 deletes a settled thread's worktree only when
+the owner turned on Settings → Worktrees → Cleanup (off by default), and then
+by default with ignored files like `.env`.
 
 ## When the `t3` server fails
 
 | What you see | Move |
 | --- | --- |
 | no `mcp__t3__*` tools | `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3773/mcp`: `401` — alive, check this environment's sign-in, then a fresh session; connection error — ask the owner to open T3 |
-| `capability_denied` | sign-in expired (30 days per the docs) or is read-only: the owner runs `claude mcp login t3` and picks full access |
+| `capability_denied`, or `runtime_mode_escalation_denied` on launch | sign-in expired (30 days per the docs), is read-only, or allows less than `full-access` — a new sign-in defaults to Auto: the owner runs `claude mcp login t3` and picks Full access |
