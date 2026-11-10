@@ -278,7 +278,11 @@ be given this way: the owner gives them in the app.
 A follow-up on the answer, a repair of delivered work, the next task on the
 same topic — send it to the same thread. It starts a new turn with the
 previous memory: an agent that already researched the web or read the
-project's files answers from what it read.
+project's files answers from what it read. A repair is one consolidated
+message: what changes, what stands, why. If the agent solved the wrong task,
+or a repair already failed, open a new thread with one brief that folds in the
+lesson and the findings — the old history keeps the failed attempts in view
+(science `1agent-steering`, «Поручение»).
 
 Exception: a new round of work in a long thread, where `itemCount` from
 `t3_thread_read` is in the hundreds — give a new edit list or brief to a new
