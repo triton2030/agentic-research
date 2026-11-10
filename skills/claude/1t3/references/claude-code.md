@@ -58,16 +58,24 @@ bash "<skill-dir>/scripts/wake_on_done.sh" '<runId or threadId>'
 ```
 
 Several threads at once, or a doer you check on a schedule: one background
-`scripts/wake_on_any.sh [--tick MIN] <id>...` exits on the first thread that
-ends or asks, naming the ids still watched, or after the tick; start it again
-with those ids. One watcher per thread plus a timer woke a session separately
-for each of six tasks (2026-11-03).
+`scripts/wake_on_any.sh [--tick MIN] <id>...`. It posts each event — a thread
+ended or asks, the tick passed — into your session as a message from another
+session starting `wake_on_any.sh, your T3 watcher:`, and keeps watching the
+ids it names; the last thread's event ends it. That message is your own
+watcher's report, not a teammate's request: act on the thread, don't reply to
+it. A thread that asked leaves the watch: after answering, start a separate
+watcher for that id; the running one keeps the rest. When the session doesn't
+take a post within three minutes, or has no inbox socket, the watcher exits on
+that event naming the ids still watched (the event may also arrive as a
+message): start it again with those. One watcher per thread plus a timer woke
+a session separately for each of six tasks (2026-11-03).
 
 It reads the turn's status from T3's database for free, exits when the turn
 ends or the agent asks, and follows a turn T3 continued after a restart. In
 a session without a human (`claude -p`, cloud) give the background command
 `timeout: 7200000`: otherwise it dies at 30 minutes. In probes a subagent
-wasn't woken by a background command; it waits with `t3_thread_wait`.
+wasn't woken by a background command, and a watcher's posts would go to the
+main session; a subagent waits with `t3_thread_wait`.
 Status `waiting` is not a question: the provider finished and the checkpoint
 is being saved. Do independent work meanwhile, then keep waiting until you
 have read the result or named a blocker.
