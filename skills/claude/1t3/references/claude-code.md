@@ -117,7 +117,11 @@ message: `~/.t3/bin/t3 thread show '<threadId>' --messages 1` (plain text;
 ## When continuing
 
 A follow-up, a repair, the next task on the topic go to the same thread: it
-remembers what it read. Send it with `run_in_background: true`:
+remembers what it read. A repair is one consolidated message: what changes,
+what stands, why. If the agent solved the wrong task, or a repair already
+failed, open a new thread with one brief that folds in the lesson and the
+findings — the old history keeps the failed attempts in view (science
+`1agent-steering`, «Поручение»). Send it with `run_in_background: true`:
 
 ```bash
 ~/.t3/bin/t3 thread send '<threadId>' - --wait <<'EOF'

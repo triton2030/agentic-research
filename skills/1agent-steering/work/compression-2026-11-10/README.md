@@ -1,9 +1,9 @@
 # Сжатие трёх скилов и снятие конфликтов — 2026-11-10
 
 Полная переработка `1agent-steering`, `1skill-creation` и `1instruction-authoring`
-как одной системы. Снимки: [`1agent-steering` installed-2026-11-10-v2](../../versions/installed-2026-11-10-v2/SKILL.md),
-[`1skill-creation` v23](../../../1skill-creation/versions/v23/portable/SKILL.md),
-[`1instruction-authoring` v22](../../../1instruction-authoring/versions/v22/portable/SKILL.md).
+как одной системы. Снимки: [`1agent-steering` installed-2026-11-10-v3](../../versions/installed-2026-11-10-v3/SKILL.md),
+[`1skill-creation` v24](../../../1skill-creation/versions/v24/portable/SKILL.md),
+[`1instruction-authoring` v23](../../../1instruction-authoring/versions/v23/portable/SKILL.md). Тексты до правок по проверяющим — installed-2026-11-10-v2, `1skill-creation` v23, `1instruction-authoring` v22.
 Сессия Claude Code `4ab2091c-fb00-4f6d-beaf-4c58eff3642c`.
 
 ## Заказ и решения владельца
@@ -39,6 +39,11 @@
 
 ## Проверка
 
-Сноски науки сверены: у каждой ссылки есть определение. Установка в Claude
-и Codex сверена `--check`. Проб и проверяющих после переписывания не было:
-поведение не проверено.
+- [probes.md](probes.md) — десять прогонов Sonnet 5.5: ожидания до прогона,
+  итоги, повторная волна после правок.
+- [reviews.md](reviews.md) — находки трёх проверяющих и решения по ним.
+- Сноски науки сверены, установка в Claude и Codex сверена `--check`.
+- Не проверено пробами: новый скил, полная переработка, новый слой с поиском,
+  оркестратор и тред T3. Правка `1t3` записана в отслеживаемого владельца,
+  но не установлена: владелец уже новее установленной копии из-за чужой
+  утренней правки.

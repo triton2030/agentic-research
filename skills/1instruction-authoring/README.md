@@ -2,7 +2,7 @@
 
 Живой владелец — [`../shared/1instruction-authoring/portable/`](../shared/1instruction-authoring/portable/). Эта папка хранит историю, не рабочий контракт.
 
-Последняя установленная версия — [v22](versions/v22/portable/SKILL.md),
+Последняя установленная версия — [v23](versions/v23/portable/SKILL.md), 2026-11-10 после проб и проверяющих; до них — [v22](versions/v22/portable/SKILL.md),
 2026-11-10, вторая правка дня: снят пересказ науки, снятие строки — по цене,
 проверка свежими агентами — предложением в конце.
 [Работа](work/compression-2026-11-10/README.md).
