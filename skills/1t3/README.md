@@ -88,3 +88,4 @@ description: "История скила 1t3: треды Muse, Gemini и Grok ч�
 - `work/inside-t3-2026-11-05/README.md` — развилка «внутри T3 / из Claude Code» в теле, остальное в references; снимок `versions/claude-2026-11-05/`.
 - `work/worktree-cleanup-2026-11-05/README.md` — уборка рабочих копий исполнителей после приёмки: условие владельца, проба и ревью.
 - `work/t3-0.1.8-2026-11-09/README.md` — сверка с T3 Code 0.1.8-nightly: усилие Codex из `1orchestration`, режим `auto`, порог settled и очистка копий, `freshContext`, сбой `runtime_mode_escalation_denied`; снимок `versions/claude-2026-11-09/`; после проверяющего Codex — вложения для Gemini и скрипт подготовки копии, `versions/claude-2026-11-09-v2/`.
+- `work/inbox-socket-2026-11-10/README.md` — `scripts/wake_on_any.sh` шлёт события в сессию через её входящий сокет и следит дальше; доставка подтверждается по транскрипту, иначе прежний выход. Проверяющие Fable и Codex; снимок `versions/claude-2026-11-10/`.
