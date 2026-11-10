@@ -82,8 +82,10 @@ have read the result or named a blocker.
 
 ## While a turn runs
 
-Watch `t3_thread_read` with `view: "activity"`; judge the frame, not the
-clock.
+Watch `t3_thread_read` with `view: "activity"`, `limit` about 5 and
+`maxCharsPerItem` about 300; judge the frame, not the clock. In a session of
+about a hundred threads, reads without that cap averaged 5,000 characters, up
+to 27,000 (2026-11-10).
 
 - Right goal, drifting — one correction with `t3_thread_send` `mode: "auto"`.
   Ignored — stop the thread: a second correction makes the brief a moving

@@ -58,6 +58,13 @@ weren't checked. Ask a reader for `path:line` and verbatim quotes. Don't
 point agents at files with keys: Meta, Google and Cursor get all they read,
 and per the docs Meta may train on it by default.
 
+A thread's brief also names an absolute path in your work folder for the
+report, the one file a read-only agent may write: the agent writes each full
+report there and ends its turn with at most five lines — the outcome, what
+stays open, the path. Each final message lands whole in your context; in a
+session of about a hundred threads they were the largest T3 cost
+(2026-11-10). Open the file when a decision or the acceptance needs it.
+
 ## Providers
 
 | | Can't | Writes outside the folder | Owner's skills | Message into a running turn |
