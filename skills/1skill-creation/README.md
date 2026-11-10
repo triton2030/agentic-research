@@ -20,7 +20,12 @@
 [`skills/claude/1skill-creation/`](../claude/1skill-creation/) и
 [`skills/codex/1skill-creation/`](../codex/1skill-creation/).
 
-Последняя установленная редакция — [v22](versions/v22/portable/SKILL.md),
+Последняя установленная редакция — [v23](versions/v23/portable/SKILL.md),
+2026-11-10: снят пересказ науки и чтение `user-said.md`; исполнитель скила
+вместо «сильного агента»; сжатие контекста, `skill-creator`, слова вызова
+в `description`. [Работа](work/compression-2026-11-10/README.md).
+
+Предыдущая — [v22](versions/v22/portable/SKILL.md),
 2026-11-01: упрощена с нуля, проверка по типу правки, субагенты — предложением
 в конце, история в одном рассказе (v21 — та же работа до проверки).
 [Работа](work/smart-simple-2026-11-01/README.md).

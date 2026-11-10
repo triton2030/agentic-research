@@ -2,7 +2,12 @@
 
 Живой владелец — [`../shared/1instruction-authoring/portable/`](../shared/1instruction-authoring/portable/). Эта папка хранит историю, не рабочий контракт.
 
-Последняя установленная версия — [v21](versions/v21/portable/SKILL.md),
+Последняя установленная версия — [v22](versions/v22/portable/SKILL.md),
+2026-11-10, вторая правка дня: снят пересказ науки, снятие строки — по цене,
+проверка свежими агентами — предложением в конце.
+[Работа](work/compression-2026-11-10/README.md).
+
+Предыдущая — [v21](versions/v21/portable/SKILL.md),
 2026-11-10: исправлено правило чтения `AGENTS.md` в Claude Code, добавлены
 осадок осторожности, `/doctor prompt-audit`, читатели папок — только где
 объём засорит окно. [Работа](work/opus-5-5-2026-11-10/README.md).
