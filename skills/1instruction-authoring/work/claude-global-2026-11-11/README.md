@@ -13,6 +13,15 @@
 - `~/.claude/settings.json`: `CLAUDE_CODE_SUBAGENT_MODEL=sonnet`.
 - `~/.claude/agents/Explore.md`: свой Explore на Haiku.
 
+## Два режима субагентов
+
+Решение владельца после проверки (`_ops/chat-recall/2026-11-11-132037-claude-fcbd27a5.md#recall-ac3c587cdcba4153b16d304907cd441b`):
+читать и собирать агент отдаёт своим субагентам свободно, без
+`1orchestration`; оркестрация — для большой работы. Пункт об исполнителях
+в корне разделён на два, description `1orchestration` сужен до большой работы
+с пишущими исполнителями. Пробы выше шли на прежнем тексте пункта и нового
+не покрывают.
+
 ## Проверка настроек
 
 Проба `claude -p --model opus`: general-purpose без модели пошёл на Sonnet 5.5,

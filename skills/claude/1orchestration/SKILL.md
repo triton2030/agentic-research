@@ -1,10 +1,9 @@
 ---
 name: 1orchestration
 description: >-
-  Use when the owner calls you the orchestrator, work is split between
-  agents — your own subagents or T3 Code threads — or a crypto question needs
-  Grok: whom to call by name, with which model and effort, and how to accept
-  their returns.
+  Use when the owner calls you the orchestrator, big work goes to several
+  writing executors (T3 threads, subagents) or a crypto question needs Grok:
+  whom to call, model, effort. Not for read-only subagents.
 ---
 
 # Оркестрация Claude
