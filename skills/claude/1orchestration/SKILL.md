@@ -1,7 +1,7 @@
 ---
 name: 1orchestration
 description: >-
-  Use when the owner calls you the orchestrator, big work goes to several
+  Use when the owner calls you the orchestrator, big work goes to
   writing executors (T3 threads, subagents) or a crypto question needs Grok:
   whom to call, model, effort. Not for read-only subagents.
 ---
