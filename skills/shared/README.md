@@ -51,7 +51,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 | --- | --- | --- |
 | `1t3` | `skills/claude/1t3/`, `skills/codex/1t3-codex/` | общий скрипт по имени каждого |
 | `1orchestration` | `skills/{claude,codex}/1orchestration/` | общий скрипт |
-| `1fresh-eyes` | `skills/{claude,codex}/1fresh-eyes/`; продуктовая пара — у Claude owner, не устанавливается | явный manifest из `skills/1fresh-eyes/`; профиль `agents/expansionist.{md,toml}` ещё и в `~/.{claude,codex}/agents/` |
+| `1fresh-eyes` | `skills/{claude,codex}/1fresh-eyes/`; продуктовая пара — у Claude owner, не устанавливается | явный manifest из `skills/1fresh-eyes/`; у Claude пять линз — `agents/*.md` владельца, папка скила грузится плагином по `.claude-plugin/plugin.json`, профили зовутся `1fresh-eyes:<имя>`, в `~/.claude/agents/` их нет; у Codex профиль `agents/expansionist.toml` ещё и в `~/.codex/agents/` |
 | `1smart-simple` | tracked owner нет: правда — `~/.{claude,codex}/skills/1smart-simple/` | вручную |
 
 ## Product owners

@@ -6,7 +6,8 @@
 она общая по смыслу и не входит в installed package. Эта папка — история.
 
 - Последние самостоятельные снимки: [Codex](versions/installed-codex-2026-09-22-full-panel/SKILL.md)
-  и [Claude](versions/installed-claude-2026-09-22-full-panel/SKILL.md).
+  и [Claude](versions/installed-claude-2026-11-11-plugin/SKILL.md).
+- [Линзы Claude в папке скила](work/plugin-2026-11-11/README.md).
 - [Карта изменений](cut.md).
 - [Намерение и состояние](work/expansionist-2026-09-22/state.md).
 - [Решения по проверкам](work/expansionist-2026-09-22/review-decisions.md).
@@ -14,6 +15,10 @@
 - [Все участники и совместный результат](work/expansionist-2026-09-22/panel-audit/report.md).
 - [Состав финальной доставки](work/expansionist-2026-09-22/final-runtime-manifest.json).
 - [Предыдущая проверка](work/refactor-2026-09-12/verification.md).
+
+2026-11-11: пять линз Claude перенесены из `~/.claude/agents/` в `agents/`
+скила; папка скила стала плагином Claude Code, и профили зовутся
+`1fresh-eyes:<имя>`. Тексты линз не менялись. Codex не тронут.
 
 2026-09-22: Expansionist добавлен пятой линзой. Метод ищет дополнительную
 пользу доступных опор для исходной цели, учитывает цену отвлечения и проверку
