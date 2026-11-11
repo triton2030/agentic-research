@@ -1,0 +1,5 @@
+{
+  "name": "11logic-coherence",
+  "description": "Logic coherence check for project documents: an agent that runs it in a separate window and three helper agents for blind conditions, a blind walkthrough and the attack on the map.",
+  "version": "1.1.0"
+}
