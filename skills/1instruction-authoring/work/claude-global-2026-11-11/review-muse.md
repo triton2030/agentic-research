@@ -10,7 +10,7 @@
 Стороны и их цели, от которых меряются находки:
 
 - Владелец: видит работу исполнителей в T3, держит расход подписки, читает
-  мало текста. `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:82` «так я держу расход подписки».
+  мало текста. `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:92` «так я держу расход подписки».
 - Главная сессия Claude: в момент делегирования выбирает, кого звать и с какой
   моделью.
 - Субагенты и Explore: исполняют по своим файлам, разговора главной сессии
@@ -34,8 +34,13 @@
 - `git show bf6ae748` — в скиле изменены только две строки про effort.
 - `claude --version` — 2.1.322: поля `omitClaudeMd` (нужна 2.1.271+) и порядок
   выбора модели субагента (2.1.251+) этой версией поддерживаются.[^subagents]
+- Во время проверки авторская сессия коммитом `6e98d959` добавила в корень
+  абзац «Перед работой крупнее простой правки скажи в чате…» и обновила
+  снимок `after.md` (+10 строк в начале). Абзац в поручение не входит
+  и не проверялся; адреса в этом отчёте приведены к обновлённому снимку,
+  текст цитируемых строк не менялся.
 - Сверка цитат этого отчёта (`check_quotes.py` из `11logic-coherence`):
-  48 из 48 найдены по названным адресам, код выхода 0.
+  51 из 51 найдены по названным адресам, код выхода 0.
 
 Поведение свежих сессий не проверял: это работа трёх параллельных проб.
 Моя карта внешней атаки другим агентом не проходила: поручение запрещает
@@ -78,7 +83,7 @@
 ### Н1. Корень обещает от хука больше, чем хук делает — средняя
 
 Было: `skills/1instruction-authoring/work/claude-global-2026-11-11/original.md:60` «первую такую команду сессии без скила останавливает хук».
-Стало: `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:60` «Без скила такую команду остановит хук».
+Стало: `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:70` «Без скила такую команду остановит хук».
 
 Хук останавливает одну команду за сессию, повтор проходит без скила:
 `/Users/triton/.claude/hooks/require-cli-tools.py:15` «останавливает одну команду за сессию: повтор проходит».
@@ -91,7 +96,7 @@
 ### Н2. Роли дорогих моделей ушли из постоянно загруженного текста — средняя
 
 Было в корне: `skills/1instruction-authoring/work/claude-global-2026-11-11/original.md:82` «Opus medium — для умного решения, не требующего большой работы» — и следом Fable, Sol, Terra, Muse.
-Стало: `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:79` «Своих субагентов зови на Sonnet или Haiku и модель называй в каждом вызове».
+Стало: `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:89` «Своих субагентов зови на Sonnet или Haiku и модель называй в каждом вызове».
 
 Из системы смысл не потерян: весь состав — в таблице скила (раздел «Что
 держится»). Сам перенос методу владельца соответствует:
@@ -101,7 +106,7 @@
 «Codex тредом T3» без указания Sol или Terra и «только Sonnet или Haiku»
 своим субагентам. Исключение из корневого правила живёт не в самом правиле,
 а за указателем строкой выше. Наука: `/Users/triton/.claude/skills/1agent-steering/references/steering-science.md:121` «Исключение отдельной строкой почти не действует».
-Смягчает указатель: `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:79` «открой его до первого вызова исполнителя» — но слово «исполнитель» в этом пункте сначала
+Смягчает указатель: `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:89` «открой его до первого вызова исполнителя» — но слово «исполнитель» в этом пункте сначала
 относится к треду T3, и вызов своего субагента агент может под него
 не подвести. Дойдёт ли агент до скила, меряют пробы; по тексту риск есть.
 Починка: исключение в само правило — «…на Sonnet или Haiku, кроме ролей
@@ -130,7 +135,7 @@ Opus и Fable из `1orchestration`».
 ### Н5. У `1cli-tools` снято наблюдение-обоснование — низкая
 
 Было: `skills/1instruction-authoring/work/claude-global-2026-11-11/original.md:58` «Ты почти не открываешь его и пишешь скрипт на два-три вызова».
-Стало: `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:59` «готовый инструмент часто заменяет скрипт одной командой».
+Стало: `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:69` «готовый инструмент часто заменяет скрипт одной командой».
 
 Наблюдение «ты почти не открываешь» было дельтой правила — основанием
 из уже случившихся нарушений. Наука: `/Users/triton/.claude/skills/1agent-steering/references/steering-science.md:17` «причина рядом с правилом помогает применить и обобщить его».
@@ -141,7 +146,7 @@ Opus и Fable из `1orchestration`».
 
 ### Н6. Причина «называй модель» устарела после настройки Sonnet по умолчанию — средняя
 
-Корень: `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:81` «без неё субагент может получить модель главной сессии».
+Корень: `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:91` «без неё субагент может получить модель главной сессии».
 Скил: `skills/claude/1orchestration/SKILL.md:102` «без явной модели они берут модель родителя, Opus».
 Среда: `/Users/triton/.claude/settings.json:6` «CLAUDE_CODE_SUBAGENT_MODEL» стоит `sonnet`.
 
@@ -171,7 +176,7 @@ Opus и Fable из `1orchestration`».
 ### Н8. Заявлено «состав живёт только в скиле», дубли остались — низкая
 
 Дословно совпадают в обоих слоях:
-`skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:82` «Модель Claude запускай только своим субагентом; тредом T3 Claude не запускай» и
+`skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:92` «Модель Claude запускай только своим субагентом; тредом T3 Claude не запускай» и
 `skills/claude/1orchestration/SKILL.md:63` «Модель Claude запускай только своим субагентом; тредом T3 Claude не запускай».
 Так же продублированы запрет `xhigh`/`max` и дефолт Sonnet/Haiku.
 Наука: `/Users/triton/.claude/skills/1agent-steering/references/steering-science.md:59` «Каждый смысл живёт в одном месте; повтор поднимает смысл выше его ранга».
@@ -185,7 +190,7 @@ Opus и Fable из `1orchestration`».
 
 ### Н9. «Модель называй в каждом вызове» перебивает Haiku у Explore — средняя
 
-`skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:79` «Своих субагентов зови на Sonnet или Haiku и модель называй в каждом вызове».
+`skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:89` «Своих субагентов зови на Sonnet или Haiku и модель называй в каждом вызове».
 
 По официальному порядку параметр `model` конкретного вызова старше
 модели из файла агента.[^subagents] У Explore в файле стоит
@@ -202,11 +207,11 @@ Opus и Fable из `1orchestration`».
 ### Н10. «По источнику, открытому в этой сессии» пропускает устаревший `--help` — средняя
 
 Было: `skills/1instruction-authoring/work/claude-global-2026-11-11/original.md:114` «перед ответом о версии, возможностях или поведении инструмента» — триггер вызова `firecrawl-developer-index`.
-Стало: `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:103` «Ответ о версии, возможностях или поведении инструмента давай по источнику, открытому в этой сессии» — и первым из способов назван локальный `--help`.
+Стало: `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:113` «Ответ о версии, возможностях или поведении инструмента давай по источнику, открытому в этой сессии» — и первым из способов назван локальный `--help`.
 
 Разделить цель и способ — по науке верно. Дефект в двух местах.
 Первое: `--help` установленной версии отвечает про установленную,
-а страх владельца в том же абзаце — `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:98` «то, что не подходило, сегодня может подойти».
+а страх владельца в том же абзаце — `skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:108` «то, что не подходило, сегодня может подойти».
 Локальный `--help` устаревает вместе с установкой и даст уверенный
 ответ про вчерашние возможности — ровно тот «велосипед», от которого
 абзац защищает. Второе: момент не назван — «открытому в этой сессии»
@@ -225,7 +230,7 @@ Opus и Fable из `1orchestration`».
 
 ### Н12. «Без терминов, придуманных по ходу работы» без названной области — низкая
 
-`skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:33` «без терминов, придуманных по ходу работы».
+`skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:43` «без терминов, придуманных по ходу работы».
 
 Строка стоит в разделе про текст для владельца, но область в ней самой
 не названа. Буквально агент может избегать нужного нового имени —
@@ -296,7 +301,7 @@ Haiku на `medium` сам решает, когда остановиться; с
 `/Users/triton/.claude/agents/Explore.md:18` «Search wide first with Glob and Grep».
 
 Корень главной сессии велит обратное:
-`skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:69` «он смешивает одноимённые функции, реэкспорты и комментарии» — поэтому символы ищут через LSP.
+`skills/1instruction-authoring/work/claude-global-2026-11-11/after.md:79` «он смешивает одноимённые функции, реэкспорты и комментарии» — поэтому символы ищут через LSP.
 Explore корня не видит (`omitClaudeMd`), как и встроенный, — по
 контексту паритет. Но свой промпт — ровно то место, куда документация
 советует повторить правило, которое обязано дойти до субагента[^subagents];
@@ -378,6 +383,7 @@ Haiku 5.5 (проба в `README.md` папки). Вендор этот ход �
 Файлы, кроме этого отчёта, не изменены; коммитов нет.
 
 [^science]: Наука владельца: `~/.claude/skills/1agent-steering/references/steering-science.md` и пробы в `~/.claude/skills/1agent-steering/SKILL.md`, прочитаны в этой сессии.
+[^authoring]: Механика слоя владельца: `~/.claude/skills/1instruction-authoring/SKILL.md`, прочитана в этой сессии.
 [^subagents]: [Create custom subagents](https://code.claude.com/docs/en/sub-agents.md), открыта 2026-11-11: разделы «Built-in subagents» (Explore), «Choose a model», «Supported frontmatter fields», «Available tools», «What loads at startup», «Choose an effort level».
 [^best]: [Best practices for Claude Code](https://code.claude.com/docs/en/best-practices.md), открыта 2026-11-11: разделы «Keep CLAUDE.md short», «Know what subagents cost», «What you can stop doing».
 [^fable]: [Prompting Claude Fable 5.2](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-2.md), открыта 2026-11-11: разделы «Set expectations for subagents», «Keep caution from piling up», «Review instructions written for earlier models».
