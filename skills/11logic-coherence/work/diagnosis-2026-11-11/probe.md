@@ -64,7 +64,8 @@
 
 - Проба: субагент Fable `high` сессии Claude Code `de612af8`; песочница — `scratchpad/p/a/` этой сессии (`skill/`, `case/`, карта в `out/`).
 - Проверяющий другой семьи: тред T3 Codex `gpt-6.1-sol`/`max`, id `mcp:4b4e24f4-aff7-4bf1-9516-b14268ef17bd`; отчёт пишет в `review-codex.md` рядом.
-- Установленный скил не менялся; установка — после разбора обоих результатов.
+- Вторая проба: такой же субагент на `scratchpad/p/b/`.
+- После обеих проб и разбора ревью `candidate-2026-11-11` установлена в Claude и Codex.
 
 [^logic-first]: `_ops/chat-recall/2026-11-11-202450-claude-code-de612af8.md#recall-6d2ef34e79734cda945139ebfff85752`.
 [^red-button]: `_ops/chat-recall/2026-11-11-202450-claude-code-de612af8.md#recall-a7cb077557de4338841ef2ddc9b79348`.
